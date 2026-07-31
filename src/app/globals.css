@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'FreeSans';
+  src: url('/fonts/FreeSans.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'FreeSans';
+  src: url('/fonts/FreeSansBold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-body: 'FreeSans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --color-hutan: #1F4E4A;
+  --color-hutan-gelap: #143733;
+  --color-daun-muda: #DCEAE4;
+  --color-padi: #D9A23B;
+  --color-kertas: #F6F7F1;
+  --color-kertas-dalam: #EEF1E8;
+  --color-tinta: #292924;
+  --color-tinta-lembut: #62625A;
+  --color-garis: #D8DCCF;
+  --color-hijau-ok: #2F7D52;
+  --color-hijau-ok-bg: #E4F2E9;
+  --color-kuning-warn: #C9821D;
+  --color-kuning-warn-bg: #FBEFD9;
+  --color-merah-risiko: #B23A2E;
+  --color-merah-risiko-bg: #F8E2DF;
+}
+
+@theme inline {
+  --color-hutan: #1F4E4A;
+  --color-hutan-gelap: #143733;
+  --color-daun-muda: #DCEAE4;
+  --color-padi: #D9A23B;
+  --color-kertas: #F6F7F1;
+  --color-kertas-dalam: #EEF1E8;
+  --color-tinta: #292924;
+  --color-tinta-lembut: #62625A;
+  --color-garis: #D8DCCF;
+  --color-hijau-ok: #2F7D52;
+  --color-hijau-ok-bg: #E4F2E9;
+  --color-kuning-warn: #C9821D;
+  --color-kuning-warn-bg: #FBEFD9;
+  --color-merah-risiko: #B23A2E;
+  --color-merah-risiko-bg: #F8E2DF;
+}
+
+html {
+  font-family: var(--font-body);
+}
+
+body {
+  background: linear-gradient(135deg, var(--color-kertas) 0%, #e8ede4 100%);
+  color: var(--color-tinta);
+  font-size: 18px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea, select {
+  transition: all 0.2s ease;
+}
+
+/* Button hover effects */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.25s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(31, 78, 74, 0.12);
+}
+
+/* Glassmorphism (simplified - no blur for performance) */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Status badge gradients */
+.badge-sehat {
+  background: linear-gradient(135deg, #E4F2E9 0%, #c8e6cf 100%);
+  color: var(--color-hijau-ok);
+  border: 1px solid rgba(47, 125, 82, 0.2);
+}
+
+.badge-pemantauan {
+  background: linear-gradient(135deg, #FBEFD9 0%, #f5dfc0 100%);
+  color: var(--color-kuning-warn);
+  border: 1px solid rgba(201, 130, 29, 0.2);
+}
+
+.badge-rujukan {
+  background: linear-gradient(135deg, #F8E2DF 0%, #f0c8c3 100%);
+  color: var(--color-merah-risiko);
+  border: 1px solid rgba(178, 58, 46, 0.2);
+}
+
+/* Header gradient */
+.header-gradient {
+  background: linear-gradient(135deg, var(--color-hutan) 0%, #2a6b64 50%, var(--color-hutan-gelap) 100%);
+}
+
+/* Primary button gradient */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-hutan) 0%, #2a6b64 100%);
+  box-shadow: 0 4px 15px rgba(31, 78, 74, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2a6b64 0%, var(--color-hutan-gelap) 100%);
+  box-shadow: 0 6px 20px rgba(31, 78, 74, 0.35);
+}
+
+/* Gold button gradient */
+.btn-gold {
+  background: linear-gradient(135deg, var(--color-padi) 0%, #c4922e 100%);
+  box-shadow: 0 4px 15px rgba(217, 162, 59, 0.3);
+}
+
+.btn-gold:hover:not(:disabled) {
+  background: linear-gradient(135deg, #c4922e 0%, #b8862a 100%);
+  box-shadow: 0 6px 20px rgba(217, 162, 59, 0.4);
+}
+
+/* Soft shadow */
+.shadow-soft {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Table row hover */
+tr:hover td {
+  background-color: var(--color-kertas-dalam);
+}
+
+/* Input focus effect */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-hutan);
+  box-shadow: 0 0 0 3px rgba(31, 78, 74, 0.15);
+}
+
+/* Pulse animation for urgent status */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for accessibility */
+input:focus, button:focus, textarea:focus, select:focus {
+  outline: 3px solid var(--color-padi);
+  outline-offset: 2px;
+}
+
+/* DotGrid component */
+.dot-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.dot-grid__wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.dot-grid__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
