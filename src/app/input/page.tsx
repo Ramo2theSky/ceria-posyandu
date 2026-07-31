@@ -26,6 +26,13 @@ interface Pengukuran {
   tanggalPeriksa: string;
 }
 
+const stepTitles = ['Identitas Warga', 'Pengukuran', 'Hasil & Simpan'];
+const stepSubtitles = [
+  'Isi data identitas warga. Hanya perlu NIK dan data diri.',
+  'Masukkan hasil pengukuran hari ini.',
+  'Periksa hasil screening sebelum disimpan.',
+];
+
 export default function InputPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -57,21 +64,17 @@ export default function InputPage() {
 
   const validateStep1 = (): boolean => {
     const newErrors: Record<string, string> = {};
-
     const nikError = validasiNIK(identitas.nik);
     if (nikError) newErrors.nik = nikError.message;
-
     const tglError = validasiTanggalLahir(identitas.tanggalLahir);
     if (tglError) newErrors.tanggalLahir = tglError.message;
     if (!identitas.jenisKelamin) newErrors.jenisKelamin = 'Pilih jenis kelamin';
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateStep2 = (): boolean => {
     const newErrors: Record<string, string> = {};
-
     const bb = parseFloat(pengukuran.beratBadan);
     const tb = parseFloat(pengukuran.tinggiBadan);
     const lp = parseFloat(pengukuran.lingkarPinggang);
@@ -85,7 +88,6 @@ export default function InputPage() {
     if (isNaN(sistol) || sistol < 60 || sistol > 300) newErrors.tdSistol = 'TD sistolik tidak wajar';
     if (isNaN(diastol) || diastol < 30 || diastol > 200) newErrors.tdDiastol = 'TD diastolik tidak wajar';
     if (isNaN(gds) || gds < 40 || gds > 600) newErrors.gds = 'GDS tidak wajar (40-600 mg/dL)';
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -104,7 +106,6 @@ export default function InputPage() {
     const hasilGDS = klasifikasiGDS(gds);
     const hasilKol = klasifikasiKolesterol(kol);
     const hasilLP = klasifikasiLP(lp, identitas.jenisKelamin as 'L' | 'P');
-
     const keseluruhan = statusKeseluruhan([hasilIMT, hasilTD, hasilGDS, hasilKol, hasilLP]);
 
     return {
@@ -148,7 +149,6 @@ export default function InputPage() {
       if (error) throw error;
 
       logActivity('insert', identitas.nik, `Data warga ${identitas.nik} berhasil disimpan`);
-
       alert('Data tersimpan!');
       router.push('/dashboard');
     } catch (err) {
@@ -160,295 +160,355 @@ export default function InputPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="header-gradient text-white p-4 flex justify-between items-center shadow-soft">
-        <button onClick={() => router.push('/dashboard')} className="text-sm hover:opacity-80">
-          ← Kembali
+    <div className="min-h-screen bg-[var(--color-kertas)]">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-6 py-4">
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
+          <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
+          <span className="font-semibold hidden sm:inline">CERIA</span>
         </button>
-        <h1 className="text-lg font-bold">Input Data Warga</h1>
-        <a href="/dashboard"><img src="/ceria-logo.png" alt="CERIA" className="h-6 opacity-80" /></a>
-      </header>
-
-      <div className="p-4 flex justify-center gap-3">
-        {[1, 2, 3].map((s) => (
-          <div
-            key={s}
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-              s === step
-                ? 'btn-primary text-white'
-                : s < step
-                ? 'bg-[var(--color-hijau-ok)] text-white'
-                : 'bg-[var(--color-garis)] text-[var(--color-tinta-lembut)]'
-            }`}
-          >
-            {s}
-          </div>
-        ))}
+        <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)] hover:text-[var(--color-tinta)]">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+        </button>
       </div>
 
-      <main className="flex-1 p-4">
-        {step === 1 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[var(--color-tinta)]">Langkah 1: Identitas Warga</h2>
-
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">NIK</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={identitas.nik}
-                onChange={(e) => setIdentitas({ ...identitas, nik: e.target.value.replace(/\D/g, '').slice(0, 16) })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                placeholder="16 digit NIK"
-              />
-              {errors.nik && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.nik}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">Tanggal Lahir</label>
-              <input
-                type="date"
-                value={identitas.tanggalLahir}
-                onChange={(e) => setIdentitas({ ...identitas, tanggalLahir: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-              />
-              {errors.tanggalLahir && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.tanggalLahir}</p>}
-              {usia > 0 && (
-                <p className="text-[var(--color-tinta-lembut)] text-sm mt-1">
-                  Usia: {usia} tahun ({usia < 18 ? 'Remaja' : usia < 60 ? 'Dewasa' : 'Lansia'})
-                </p>
+      {/* Stepper */}
+      <div className="flex items-center justify-center px-8 pb-6">
+        <div className="flex items-center gap-0 w-full max-w-xs">
+          {[1, 2, 3].map((s) => (
+            <div key={s} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    s === step
+                      ? 'bg-[var(--color-hutan)] scale-125'
+                      : s < step
+                      ? 'bg-[var(--color-padi)]'
+                      : 'bg-[var(--color-garis)]'
+                  }`}
+                />
+              </div>
+              {s < 3 && (
+                <div className={`flex-1 h-0.5 mx-1 rounded-full transition-colors duration-300 ${
+                  s < step ? 'bg-[var(--color-padi)]' : 'bg-[var(--color-garis)]'
+                }`} />
               )}
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">Jenis Kelamin</label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIdentitas({ ...identitas, jenisKelamin: 'L' })}
-                  className={`flex-1 py-4 rounded-xl font-bold text-lg border-2 ${
-                    identitas.jenisKelamin === 'L'
-                      ? 'btn-primary text-white border-transparent'
-                      : 'glass border-[var(--color-garis)]'
-                  }`}
-                >
-                  Laki-laki
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIdentitas({ ...identitas, jenisKelamin: 'P' })}
-                  className={`flex-1 py-4 rounded-xl font-bold text-lg border-2 ${
-                    identitas.jenisKelamin === 'P'
-                      ? 'btn-primary text-white border-transparent'
-                      : 'glass border-[var(--color-garis)]'
-                  }`}
-                >
-                  Perempuan
-                </button>
-              </div>
-              {errors.jenisKelamin && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.jenisKelamin}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">No. HP (opsional)</label>
-              <input
-                type="tel"
-                inputMode="numeric"
-                value={identitas.noHP}
-                onChange={(e) => setIdentitas({ ...identitas, noHP: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                placeholder="08xxx"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">Alamat</label>
-              <textarea
-                value={identitas.alamat}
-                onChange={(e) => setIdentitas({ ...identitas, alamat: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                rows={3}
-                placeholder="Alamat lengkap"
-              />
-            </div>
-
-            {peringatanRemaja && (
-              <div className="p-3 badge-pemantauan rounded-xl text-sm">
-                {peringatanRemaja}
-              </div>
-            )}
-
-            <button
-              onClick={() => {
-                if (validateStep1()) setStep(2);
-              }}
-              className="w-full btn-primary text-white font-bold py-4 px-6 rounded-xl text-lg"
-            >
-              Lanjut ke Pengukuran →
-            </button>
+      {/* Main content */}
+      <div className="px-4 pb-8 flex justify-center">
+        <div className="w-full max-w-lg">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-[var(--color-tinta)]">
+              {stepTitles[step - 1]}
+            </h1>
+            <p className="text-sm text-[var(--color-tinta-lembut)] mt-1">
+              {stepSubtitles[step - 1]}
+            </p>
           </div>
-        )}
 
-        {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[var(--color-tinta)]">Langkah 2: Pengukuran</h2>
+          {/* Step 1: Identitas */}
+          {step === 1 && (
+            <div className="space-y-5">
+              {/* NIK */}
+              <InputField
+                label="NIK"
+                hint="16 digit NIK"
+                value={identitas.nik}
+                onChange={(v) => setIdentitas({ ...identitas, nik: v.replace(/\D/g, '').slice(0, 16) })}
+                error={errors.nik}
+                inputMode="numeric"
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6"/></svg>
+                }
+              />
 
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">Tanggal Periksa</label>
-              <input
+              {/* Tanggal Lahir + JK */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <InputField
+                    label="Tanggal Lahir"
+                    type="date"
+                    value={identitas.tanggalLahir}
+                    onChange={(v) => setIdentitas({ ...identitas, tanggalLahir: v })}
+                    error={errors.tanggalLahir}
+                  />
+                  {usia > 0 && (
+                    <p className="text-xs text-[var(--color-tinta-lembut)] mt-1 ml-1">
+                      Usia {usia} th · {usia < 18 ? 'Remaja' : usia < 60 ? 'Dewasa' : 'Lansia'}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Jenis Kelamin</label>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIdentitas({ ...identitas, jenisKelamin: 'L' })}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                        identitas.jenisKelamin === 'L'
+                          ? 'bg-[var(--color-hutan)] text-white border-[var(--color-hutan)]'
+                          : 'bg-white text-[var(--color-tinta)] border-[var(--color-garis)] hover:border-[var(--color-hutan)]'
+                      }`}
+                    >
+                      L
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIdentitas({ ...identitas, jenisKelamin: 'P' })}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                        identitas.jenisKelamin === 'P'
+                          ? 'bg-[var(--color-hutan)] text-white border-[var(--color-hutan)]'
+                          : 'bg-white text-[var(--color-tinta)] border-[var(--color-garis)] hover:border-[var(--color-hutan)]'
+                      }`}
+                    >
+                      P
+                    </button>
+                  </div>
+                  {errors.jenisKelamin && <p className="text-[var(--color-merah-risiko)] text-xs mt-1">{errors.jenisKelamin}</p>}
+                </div>
+              </div>
+
+              {/* No HP */}
+              <InputField
+                label="No. HP"
+                hint="Opsional"
+                value={identitas.noHP}
+                onChange={(v) => setIdentitas({ ...identitas, noHP: v })}
+                inputMode="numeric"
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+                }
+              />
+
+              {/* Alamat */}
+              <div>
+                <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Alamat</label>
+                <textarea
+                  value={identitas.alamat}
+                  onChange={(e) => setIdentitas({ ...identitas, alamat: e.target.value })}
+                  rows={2}
+                  placeholder="Alamat lengkap"
+                  className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all resize-none"
+                />
+              </div>
+
+              {peringatanRemaja && (
+                <div className="px-4 py-3 rounded-xl bg-[var(--color-kuning-warn-bg)] border border-[var(--color-kuning-warn)]/20 text-sm text-[var(--color-kuning-warn)]">
+                  {peringatanRemaja}
+                </div>
+              )}
+
+              <button
+                onClick={() => { if (validateStep1()) setStep(2); }}
+                className="w-full py-3.5 rounded-xl bg-[var(--color-hutan)] text-white font-semibold text-sm hover:bg-[var(--color-hutan-gelap)] transition-colors flex items-center justify-center gap-2 mt-2"
+              >
+                Lanjut
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Pengukuran */}
+          {step === 2 && (
+            <div className="space-y-5">
+              {/* Tanggal Periksa */}
+              <InputField
+                label="Tanggal Periksa"
                 type="date"
                 value={pengukuran.tanggalPeriksa}
-                onChange={(e) => setPengukuran({ ...pengukuran, tanggalPeriksa: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
+                onChange={(v) => setPengukuran({ ...pengukuran, tanggalPeriksa: v })}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">BB (kg)</label>
-                <input
+              {/* BB & TB */}
+              <div className="grid grid-cols-2 gap-3">
+                <InputField
+                  label="Berat Badan"
+                  hint="kg"
                   type="number"
-                  inputMode="decimal"
                   value={pengukuran.beratBadan}
-                  onChange={(e) => setPengukuran({ ...pengukuran, beratBadan: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                  placeholder="0"
-                />
-                {errors.beratBadan && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.beratBadan}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">TB (cm)</label>
-                <input
-                  type="number"
+                  onChange={(v) => setPengukuran({ ...pengukuran, beratBadan: v })}
+                  error={errors.beratBadan}
                   inputMode="decimal"
+                />
+                <InputField
+                  label="Tinggi Badan"
+                  hint="cm"
+                  type="number"
                   value={pengukuran.tinggiBadan}
-                  onChange={(e) => setPengukuran({ ...pengukuran, tinggiBadan: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                  placeholder="0"
+                  onChange={(v) => setPengukuran({ ...pengukuran, tinggiBadan: v })}
+                  error={errors.tinggiBadan}
+                  inputMode="decimal"
                 />
-                {errors.tinggiBadan && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.tinggiBadan}</p>}
               </div>
-            </div>
 
-            {imt && (
-              <div className={`p-3 rounded-xl text-center ${imt.status === 'ok' ? 'badge-sehat' : imt.status === 'warn' ? 'badge-pemantauan' : 'badge-rujukan'}`}>
-                <p className="text-sm font-bold">IMT: {(parseFloat(pengukuran.beratBadan) / Math.pow(parseFloat(pengukuran.tinggiBadan) / 100, 2)).toFixed(1)}</p>
-                <p className="text-xs">{imt.label}</p>
-              </div>
-            )}
+              {/* IMT badge */}
+              {imt && (
+                <div className={`px-4 py-3 rounded-xl text-sm ${
+                  imt.status === 'ok' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)]' :
+                  imt.status === 'warn' ? 'bg-[var(--color-kuning-warn-bg)] text-[var(--color-kuning-warn)]' :
+                  'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)]'
+                }`}>
+                  <span className="font-semibold">IMT: {(parseFloat(pengukuran.beratBadan) / Math.pow(parseFloat(pengukuran.tinggiBadan) / 100, 2)).toFixed(1)}</span>
+                  <span className="mx-2">·</span>
+                  {imt.label}
+                </div>
+              )}
 
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">Lingkar Pinggang (cm)</label>
-              <input
+              {/* Lingkar Pinggang */}
+              <InputField
+                label="Lingkar Pinggang"
+                hint="cm"
                 type="number"
-                inputMode="decimal"
                 value={pengukuran.lingkarPinggang}
-                onChange={(e) => setPengukuran({ ...pengukuran, lingkarPinggang: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                placeholder="0"
+                onChange={(v) => setPengukuran({ ...pengukuran, lingkarPinggang: v })}
+                error={errors.lingkarPinggang}
+                inputMode="decimal"
               />
-              {errors.lingkarPinggang && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.lingkarPinggang}</p>}
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">TD Sistolik</label>
-                <input
+              {/* TD */}
+              <div className="grid grid-cols-2 gap-3">
+                <InputField
+                  label="TD Sistolik"
+                  hint="mmHg"
                   type="number"
-                  inputMode="numeric"
                   value={pengukuran.tdSistol}
-                  onChange={(e) => setPengukuran({ ...pengukuran, tdSistol: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                  placeholder="0"
-                />
-                {errors.tdSistol && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.tdSistol}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">TD Diastolik</label>
-                <input
-                  type="number"
+                  onChange={(v) => setPengukuran({ ...pengukuran, tdSistol: v })}
+                  error={errors.tdSistol}
                   inputMode="numeric"
-                  value={pengukuran.tdDiastol}
-                  onChange={(e) => setPengukuran({ ...pengukuran, tdDiastol: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                  placeholder="0"
                 />
-                {errors.tdDiastol && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.tdDiastol}</p>}
+                <InputField
+                  label="TD Diastolik"
+                  hint="mmHg"
+                  type="number"
+                  value={pengukuran.tdDiastol}
+                  onChange={(v) => setPengukuran({ ...pengukuran, tdDiastol: v })}
+                  error={errors.tdDiastol}
+                  inputMode="numeric"
+                />
+              </div>
+
+              {/* GDS */}
+              <InputField
+                label="GDS"
+                hint="mg/dL"
+                type="number"
+                value={pengukuran.gds}
+                onChange={(v) => setPengukuran({ ...pengukuran, gds: v })}
+                error={errors.gds}
+                inputMode="numeric"
+              />
+
+              {/* Kolesterol */}
+              <InputField
+                label="Kolesterol Total"
+                hint="mg/dL · Opsional"
+                type="number"
+                value={pengukuran.kolesterol}
+                onChange={(v) => setPengukuran({ ...pengukuran, kolesterol: v })}
+                inputMode="numeric"
+              />
+
+              {/* Nav buttons */}
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-3.5 rounded-xl border border-[var(--color-garis)] text-[var(--color-tinta)] font-semibold text-sm hover:bg-white transition-colors"
+                >
+                  Kembali
+                </button>
+                <button
+                  onClick={() => { if (validateStep2()) setStep(3); }}
+                  className="flex-1 py-3.5 rounded-xl bg-[var(--color-hutan)] text-white font-semibold text-sm hover:bg-[var(--color-hutan-gelap)] transition-colors flex items-center justify-center gap-2"
+                >
+                  Lihat Hasil
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
               </div>
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">GDS (mg/dL)</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={pengukuran.gds}
-                onChange={(e) => setPengukuran({ ...pengukuran, gds: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                placeholder="0"
-              />
-              {errors.gds && <p className="text-[var(--color-merah-risiko)] text-sm mt-1">{errors.gds}</p>}
+          {/* Step 3: Hasil */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <HasilCard hasil={getHasil()} />
+
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => setStep(2)}
+                  className="flex-1 py-3.5 rounded-xl border border-[var(--color-garis)] text-[var(--color-tinta)] font-semibold text-sm hover:bg-white transition-colors"
+                >
+                  Kembali
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 py-3.5 rounded-xl bg-[var(--color-padi)] text-white font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? 'Menyimpan...' : 'Simpan Data'}
+                  {!saving && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12l5 5L20 7"/></svg>
+                  )}
+                </button>
+              </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-bold text-[var(--color-tinta)] mb-2">Kolesterol Total (mg/dL) - Opsional</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={pengukuran.kolesterol}
-                onChange={(e) => setPengukuran({ ...pengukuran, kolesterol: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg focus:border-[var(--color-hutan)]"
-                placeholder="Kosongkan jika tidak diperiksa"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 glass border-2 border-[var(--color-garis)] text-[var(--color-tinta)] font-bold py-4 px-6 rounded-xl text-lg"
-              >
-                ← Kembali
-              </button>
-              <button
-                onClick={() => {
-                  if (validateStep2()) setStep(3);
-                }}
-                className="flex-1 btn-primary text-white font-bold py-4 px-6 rounded-xl text-lg"
-              >
-                Lihat Hasil →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-[var(--color-tinta)]">Langkah 3: Hasil & Simpan</h2>
-
-            <HasilCard hasil={getHasil()} />
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 glass border-2 border-[var(--color-garis)] text-[var(--color-tinta)] font-bold py-4 px-6 rounded-xl text-lg"
-              >
-                ← Kembali
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 btn-gold text-white font-bold py-4 px-6 rounded-xl text-lg disabled:opacity-50"
-              >
-                {saving ? 'Menyimpan...' : '💾 Simpan Data'}
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
+/* ─── Reusable Input Field ─── */
+function InputField({
+  label,
+  hint,
+  type = 'text',
+  value,
+  onChange,
+  error,
+  inputMode,
+  icon,
+}: {
+  label: string;
+  hint?: string;
+  type?: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  inputMode?: React.InputHTMLAttributes<HTMLInputElement>['inputMode'];
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">{label}</label>
+      <div className="relative">
+        {icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-tinta-lembut)]/50">
+            {icon}
+          </div>
+        )}
+        <input
+          type={type}
+          inputMode={inputMode}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={hint}
+          className={`w-full px-4 py-3 bg-white border rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all ${
+            error ? 'border-[var(--color-merah-risiko)]' : 'border-[var(--color-garis)]'
+          } ${icon ? 'pl-10' : ''}`}
+        />
+      </div>
+      {error && <p className="text-[var(--color-merah-risiko)] text-xs mt-1 ml-1">{error}</p>}
+    </div>
+  );
+}
+
+/* ─── Hasil Card ─── */
 interface HasilItem {
   label: string;
   status: string;
@@ -466,72 +526,67 @@ interface HasilData {
 }
 
 function HasilCard({ hasil }: { hasil: HasilData }) {
-  const getColor = (status: string) => {
-    if (status === 'ok') return 'badge-sehat';
-    if (status === 'warn') return 'badge-pemantauan';
-    return 'badge-rujukan';
+  const statusConfig = {
+    ok: { bg: 'bg-[var(--color-hijau-ok-bg)]', text: 'text-[var(--color-hijau-ok)]', border: 'border-[var(--color-hijau-ok)]/20' },
+    warn: { bg: 'bg-[var(--color-kuning-warn-bg)]', text: 'text-[var(--color-kuning-warn)]', border: 'border-[var(--color-kuning-warn)]/20' },
+    risk: { bg: 'bg-[var(--color-merah-risiko-bg)]', text: 'text-[var(--color-merah-risiko)]', border: 'border-[var(--color-merah-risiko)]/20' },
   };
 
-  const getTextColor = (status: string) => {
-    if (status === 'ok') return 'text-[var(--color-hijau-ok)]';
-    if (status === 'warn') return 'text-[var(--color-kuning-warn)]';
-    return 'text-[var(--color-merah-risiko)]';
-  };
+  const getCfg = (status: string) => status === 'ok' ? statusConfig.ok : status === 'warn' ? statusConfig.warn : statusConfig.risk;
+
+  const overallCfg = hasil.keseluruhan === 'SEHAT' ? statusConfig.ok :
+    hasil.keseluruhan === 'PERLU PEMANTAUAN' ? statusConfig.warn : statusConfig.risk;
+
+  const items = [
+    { name: 'IMT', data: hasil.imt },
+    { name: 'Tekanan Darah', data: hasil.td },
+    { name: 'GDS', data: hasil.gds },
+    { name: 'Lingkar Pinggang', data: hasil.lp },
+  ];
 
   return (
     <div className="space-y-3">
-      <div className={`p-4 rounded-xl text-center border-2 ${
-        hasil.keseluruhan === 'SEHAT' ? 'badge-sehat' :
-        hasil.keseluruhan === 'PERLU PEMANTAUAN' ? 'badge-pemantauan' :
-        'badge-rujukan'
-      }`}>
-        <p className={`font-bold text-2xl ${
-          hasil.keseluruhan === 'SEHAT' ? 'text-[var(--color-hijau-ok)]' :
-          hasil.keseluruhan === 'PERLU PEMANTAUAN' ? 'text-[var(--color-kuning-warn)]' :
-          'text-[var(--color-merah-risiko)]'
-        }`}>
+      {/* Overall status */}
+      <div className={`px-4 py-4 rounded-xl text-center border ${overallCfg.bg} ${overallCfg.border}`}>
+        <p className={`font-bold text-xl ${overallCfg.text}`}>
           {hasil.keseluruhan}
         </p>
       </div>
 
-      {[
-        { name: 'IMT', data: hasil.imt },
-        { name: 'Tekanan Darah', data: hasil.td },
-        { name: 'GDS', data: hasil.gds },
-        { name: 'Lingkar Pinggang', data: hasil.lp },
-      ].map((item) => (
-        <div key={item.name} className={`p-4 rounded-xl border-2 ${getColor(item.data.status)}`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-bold text-[var(--color-tinta)]">{item.name}</p>
-              <p className="text-sm text-[var(--color-tinta-lembut)]">{item.data.nilai}</p>
+      {/* Detail items */}
+      {items.map((item) => {
+        const cfg = getCfg(item.data.status);
+        return (
+          <div key={item.name} className={`px-4 py-3 rounded-xl border ${cfg.bg} ${cfg.border}`}>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-semibold text-[var(--color-tinta)]">{item.name}</p>
+                <p className="text-xs text-[var(--color-tinta-lembut)]">{item.data.nilai}</p>
+              </div>
+              <span className={`text-xs font-semibold ${cfg.text}`}>
+                {item.data.label}
+              </span>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getTextColor(item.data.status)}`}>
-              {item.data.label}
-            </span>
           </div>
-          <p className="text-sm mt-2">{item.data.keterangan}</p>
-        </div>
-      ))}
+        );
+      })}
 
-      {hasil.kolesterol && (
-        <div className={`p-4 rounded-xl border-2 ${getColor(hasil.kolesterol.status)}`}>
+      {/* Kolesterol */}
+      {hasil.kolesterol ? (
+        <div className={`px-4 py-3 rounded-xl border ${getCfg(hasil.kolesterol.status).bg} ${getCfg(hasil.kolesterol.status).border}`}>
           <div className="flex justify-between items-center">
             <div>
-              <p className="font-bold text-[var(--color-tinta)]">Kolesterol</p>
-              <p className="text-sm text-[var(--color-tinta-lembut)]">{hasil.kolesterol.nilai} mg/dL</p>
+              <p className="text-sm font-semibold text-[var(--color-tinta)]">Kolesterol</p>
+              <p className="text-xs text-[var(--color-tinta-lembut)]">{hasil.kolesterol.nilai} mg/dL</p>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getTextColor(hasil.kolesterol.status)}`}>
+            <span className={`text-xs font-semibold ${getCfg(hasil.kolesterol.status).text}`}>
               {hasil.kolesterol.label}
             </span>
           </div>
-          <p className="text-sm mt-2">{hasil.kolesterol.keterangan}</p>
         </div>
-      )}
-
-      {!hasil.kolesterol && (
-        <div className="p-4 rounded-xl border-2 border-[var(--color-garis)] bg-[var(--color-kertas-dalam)]">
-          <p className="text-[var(--color-tinta-lembut)] text-center">Kolesterol: Tidak Diperiksa</p>
+      ) : (
+        <div className="px-4 py-3 rounded-xl border border-[var(--color-garis)] bg-white">
+          <p className="text-xs text-[var(--color-tinta-lembut)] text-center">Kolesterol: Tidak Diperiksa</p>
         </div>
       )}
     </div>
