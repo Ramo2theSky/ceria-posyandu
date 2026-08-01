@@ -117,9 +117,11 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
           </div>
 
           {/* Charts */}
-          {sorted.length >= 2 && (
+          {sorted.length >= 1 && (
             <div className="space-y-5">
-              <h3 className="font-bold text-sm text-[var(--color-tinta)]">Grafik Perubahan</h3>
+              <h3 className="font-bold text-sm text-[var(--color-tinta)]">
+                {sorted.length === 1 ? 'Data Pemeriksaan' : 'Grafik Perubahan'}
+              </h3>
               <LineChart
                 title="Berat Badan (kg) & IMT"
                 data={sorted}
@@ -227,11 +229,18 @@ function LineChart({ title, data, lines }: { title: string; data: RiwayatPemerik
           }).join(' ');
           return (
             <g key={line.key}>
-              <polyline points={points} fill="none" stroke={line.color} strokeWidth="2" strokeLinejoin="round" />
+              {data.length > 1 && <polyline points={points} fill="none" stroke={line.color} strokeWidth="2" strokeLinejoin="round" />}
               {data.map((d, i) => {
                 const val = Number(d[line.key as keyof RiwayatPemeriksaan]);
                 return (
-                  <circle key={i} cx={getX(i)} cy={getY(val)} r="4" fill="white" stroke={line.color} strokeWidth="2" />
+                  <g key={i}>
+                    <circle cx={getX(i)} cy={getY(val)} r="4" fill="white" stroke={line.color} strokeWidth="2" />
+                    {data.length === 1 && (
+                      <text x={getX(i)} y={getY(val) - 10} textAnchor="middle" fontSize="11" fontWeight="bold" fill={line.color}>
+                        {val % 1 === 0 ? val : val.toFixed(1)}
+                      </text>
+                    )}
+                  </g>
                 );
               })}
             </g>

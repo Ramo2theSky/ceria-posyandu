@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP } from '@/lib/klasifikasi';
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
+import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
+import RiwayatModal from '@/components/RiwayatModal';
 
 interface Pemeriksaan {
   id: string;
@@ -42,6 +44,22 @@ export default function RekapPage() {
   const [activeStatus, setActiveStatus] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [riwayatData, setRiwayatData] = useState<RiwayatPemeriksaan[] | null>(null);
+  const [loadingRiwayat, setLoadingRiwayat] = useState(false);
+
+  const handleShowRiwayat = useCallback(async (nik: string) => {
+    setLoadingRiwayat(true);
+    try {
+      const result = await cekNIK(nik);
+      if (result.riwayat.length > 0) {
+        setRiwayatData(result.riwayat);
+      }
+    } catch {
+      console.error('Gagal memuat riwayat');
+    } finally {
+      setLoadingRiwayat(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,11 +217,24 @@ export default function RekapPage() {
           ) : (
             <div className="space-y-2">
               {searchedStatusData.map((d) => (
-                <WargaCard key={d.id} data={d} expandedId={expandedId} setExpandedId={setExpandedId} statusColor={statusColor} />
+                <WargaCard key={d.id} data={d} expandedId={expandedId} setExpandedId={setExpandedId} statusColor={statusColor} onShowRiwayat={handleShowRiwayat} />
               ))}
             </div>
           )}
         </div>
+
+        {/* Riwayat Modal */}
+        {riwayatData && riwayatData.length > 0 && (
+          <RiwayatModal riwayat={riwayatData} onClose={() => setRiwayatData(null)} />
+        )}
+        {loadingRiwayat && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl px-6 py-4 shadow-lg flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-[var(--color-hutan)] border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-[var(--color-tinta)]">Memuat riwayat...</span>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -470,7 +501,7 @@ export default function RekapPage() {
 }
 
 /* ─── Warga Card ─── */
-function WargaCard({ data: d, expandedId, setExpandedId, statusColor }: { data: Pemeriksaan; expandedId: string | null; setExpandedId: (id: string | null) => void; statusColor: string }) {
+function WargaCard({ data: d, expandedId, setExpandedId, statusColor, onShowRiwayat }: { data: Pemeriksaan; expandedId: string | null; setExpandedId: (id: string | null) => void; statusColor: string; onShowRiwayat?: (nik: string) => void }) {
   const usia = hitungUsia(d.tanggal_lahir, new Date());
   const isExpanded = expandedId === d.id;
   const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
@@ -511,6 +542,15 @@ function WargaCard({ data: d, expandedId, setExpandedId, statusColor }: { data: 
               </div>
             ))}
           </div>
+          {onShowRiwayat && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onShowRiwayat(d.nik); }}
+              className="w-full py-2 rounded-lg bg-[var(--color-padi)]/10 border border-[var(--color-padi)]/30 text-[var(--color-padi)] text-xs font-semibold hover:bg-[var(--color-padi)]/20 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+              Lihat Riwayat
+            </button>
+          )}
         </div>
       )}
     </div>
