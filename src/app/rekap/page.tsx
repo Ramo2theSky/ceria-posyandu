@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { hitungUsia } from '@/lib/klasifikasi';
+import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP } from '@/lib/klasifikasi';
+import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 
 interface Pemeriksaan {
@@ -24,6 +24,12 @@ interface Pemeriksaan {
   catatan: string;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  'SEHAT': 'Sehat',
+  'PERLU PEMANTAUAN': 'Perlu Pemantauan',
+  'PERLU RUJUKAN': 'Perlu Rujukan',
+};
+
 export default function RekapPage() {
   const router = useRouter();
   const [data, setData] = useState<Pemeriksaan[]>([]);
@@ -33,6 +39,9 @@ export default function RekapPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(true);
+  const [activeStatus, setActiveStatus] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +74,17 @@ export default function RekapPage() {
       return true;
     });
   }, [data, filterUsia, filterStatus, dateFrom, dateTo]);
+
+  const statusFiltered = useMemo(() => {
+    if (!activeStatus) return [];
+    return filtered.filter(d => d.catatan === activeStatus);
+  }, [filtered, activeStatus]);
+
+  const searchedStatusData = useMemo(() => {
+    if (!searchQuery) return statusFiltered;
+    const q = searchQuery.toLowerCase();
+    return statusFiltered.filter(d => d.nik.includes(q) || (d.alamat && d.alamat.toLowerCase().includes(q)));
+  }, [statusFiltered, searchQuery]);
 
   const totalWarga = filtered.length;
   const sehat = filtered.filter(d => d.catatan === 'SEHAT').length;
@@ -134,19 +154,70 @@ export default function RekapPage() {
     );
   }
 
+  /* ─── STATUS DETAIL VIEW ─── */
+  if (activeStatus) {
+    const statusColor = activeStatus === 'SEHAT' ? 'var(--color-hijau-ok)' : activeStatus === 'PERLU PEMANTAUAN' ? 'var(--color-kuning-warn)' : 'var(--color-merah-risiko)';
+    const statusLabel = STATUS_LABELS[activeStatus] || activeStatus;
+
+    return (
+      <div className="min-h-screen bg-[var(--color-kertas)]">
+        <div className="flex items-center justify-between px-6 py-4">
+          <button onClick={() => { setActiveStatus(null); setExpandedId(null); setSearchQuery(''); }} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span className="font-semibold">Kembali ke Rekap</span>
+          </button>
+          <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-white">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+        </div>
+
+        <div className="px-4 pb-8 max-w-3xl mx-auto">
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: statusColor }} />
+              <h1 className="text-xl font-bold text-[var(--color-tinta)]">{statusLabel}</h1>
+            </div>
+            <p className="text-xs text-[var(--color-tinta-lembut)] ml-6">{searchedStatusData.length} warga</p>
+          </div>
+
+          <div className="mb-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari NIK atau alamat..."
+              className="w-full px-4 py-2.5 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+            />
+          </div>
+
+          {searchedStatusData.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-8 text-center">
+              <p className="text-sm text-[var(--color-tinta-lembut)]">
+                {searchQuery ? 'Tidak ada data yang cocok.' : 'Tidak ada data untuk status ini.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {searchedStatusData.map((d) => (
+                <WargaCard key={d.id} data={d} expandedId={expandedId} setExpandedId={setExpandedId} statusColor={statusColor} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── MAIN REKAP VIEW ─── */
   return (
     <div className="min-h-screen bg-[var(--color-kertas)]">
-      {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4">
         <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
           <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
           <span className="font-semibold hidden sm:inline">CERIA</span>
         </button>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="lg:hidden p-2 rounded-lg hover:bg-white text-[var(--color-tinta-lembut)]"
-          >
+          <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden p-2 rounded-lg hover:bg-white text-[var(--color-tinta-lembut)]">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
           </button>
           <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-white">
@@ -164,7 +235,6 @@ export default function RekapPage() {
               <h3 className="font-bold text-sm text-[var(--color-tinta)]">Filter</h3>
             </div>
 
-            {/* Kelompok Usia */}
             <div>
               <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Kelompok Usia</p>
               <div className="space-y-2">
@@ -174,12 +244,7 @@ export default function RekapPage() {
                   { val: 'lansia', label: 'Lansia (≥ 60 th)', count: data.filter(d => hitungUsia(d.tanggal_lahir, new Date()) >= 60).length },
                 ].map((item) => (
                   <label key={item.val} className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={filterUsia.includes(item.val)}
-                      onChange={() => toggleFilterUsia(item.val)}
-                      className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]"
-                    />
+                    <input type="checkbox" checked={filterUsia.includes(item.val)} onChange={() => toggleFilterUsia(item.val)} className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]" />
                     <span className="text-sm text-[var(--color-tinta)] group-hover:text-[var(--color-hutan)]">{item.label}</span>
                     <span className="text-xs text-[var(--color-tinta-lembut)] ml-auto">{item.count}</span>
                   </label>
@@ -187,7 +252,6 @@ export default function RekapPage() {
               </div>
             </div>
 
-            {/* Status */}
             <div>
               <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Status Kesehatan</p>
               <div className="space-y-2">
@@ -197,12 +261,7 @@ export default function RekapPage() {
                   { val: 'PERLU RUJUKAN', label: 'Perlu Rujukan', count: data.filter(d => d.catatan === 'PERLU RUJUKAN').length, color: 'bg-[var(--color-merah-risiko)]' },
                 ].map((item) => (
                   <label key={item.val} className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={filterStatus.includes(item.val)}
-                      onChange={() => toggleFilterStatus(item.val)}
-                      className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]"
-                    />
+                    <input type="checkbox" checked={filterStatus.includes(item.val)} onChange={() => toggleFilterStatus(item.val)} className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]" />
                     <span className={`w-2 h-2 rounded-full ${item.color}`} />
                     <span className="text-sm text-[var(--color-tinta)] group-hover:text-[var(--color-hutan)]">{item.label}</span>
                     <span className="text-xs text-[var(--color-tinta-lembut)] ml-auto">{item.count}</span>
@@ -211,33 +270,16 @@ export default function RekapPage() {
               </div>
             </div>
 
-            {/* Date Range */}
             <div>
               <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Tanggal Periksa</p>
               <div className="space-y-2">
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]"
-                  placeholder="Dari"
-                />
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]"
-                  placeholder="Sampai"
-                />
+                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]" />
+                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]" />
               </div>
             </div>
 
-            {/* Reset */}
             {(filterUsia.length > 0 || filterStatus.length > 0 || dateFrom || dateTo) && (
-              <button
-                onClick={() => { setFilterUsia([]); setFilterStatus([]); setDateFrom(''); setDateTo(''); }}
-                className="w-full py-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-merah-risiko)] transition-colors"
-              >
+              <button onClick={() => { setFilterUsia([]); setFilterStatus([]); setDateFrom(''); setDateTo(''); }} className="w-full py-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-merah-risiko)] transition-colors">
                 Reset Filter
               </button>
             )}
@@ -246,64 +288,52 @@ export default function RekapPage() {
 
         {/* ─── Main Content ─── */}
         <main className="flex-1 min-w-0 space-y-5">
-          {/* Page title */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-[var(--color-tinta)]">Rekap Desa</h1>
               <p className="text-xs text-[var(--color-tinta-lembut)]">Dashboard overview data kesehatan warga</p>
             </div>
-            <button
-              onClick={handleExportCSV}
-              className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-hutan)] hover:text-[var(--color-hutan)] transition-colors flex items-center gap-2"
-            >
+            <button onClick={handleExportCSV} className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-hutan)] hover:text-[var(--color-hutan)] transition-colors flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               Export CSV
             </button>
           </div>
 
-          {/* ─── Stat Cards ─── */}
+          {/* ─── Stat Cards (clickable) ─── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Link href="/rekap/status/all" className="bg-white rounded-xl border border-[var(--color-garis)] p-4 hover:shadow-md transition-shadow">
+            <button onClick={() => setActiveStatus('all')} className="bg-white rounded-xl border border-[var(--color-garis)] p-4 hover:shadow-md transition-shadow text-left">
               <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1">Total Warga</p>
               <p className="text-3xl font-bold text-[var(--color-tinta)]">{totalWarga}</p>
-            </Link>
-            <Link href="/rekap/status/sehat" className="bg-white rounded-xl border border-[var(--color-hijau-ok)]/20 p-4 hover:shadow-md transition-shadow">
+            </button>
+            <button onClick={() => setActiveStatus('SEHAT')} className="bg-white rounded-xl border border-[var(--color-hijau-ok)]/20 p-4 hover:shadow-md transition-shadow text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-[var(--color-hijau-ok)]" />
                 <p className="text-xs font-semibold text-[var(--color-hijau-ok)]">Sehat</p>
               </div>
               <p className="text-3xl font-bold text-[var(--color-hijau-ok)]">{sehat}</p>
-            </Link>
-            <Link href="/rekap/status/pemantauan" className="bg-white rounded-xl border border-[var(--color-kuning-warn)]/20 p-4 hover:shadow-md transition-shadow">
+            </button>
+            <button onClick={() => setActiveStatus('PERLU PEMANTAUAN')} className="bg-white rounded-xl border border-[var(--color-kuning-warn)]/20 p-4 hover:shadow-md transition-shadow text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-[var(--color-kuning-warn)]" />
                 <p className="text-xs font-semibold text-[var(--color-kuning-warn)]">Perlu Pemantauan</p>
               </div>
               <p className="text-3xl font-bold text-[var(--color-kuning-warn)]">{perluPemantauan}</p>
-            </Link>
-            <Link href="/rekap/status/rujukan" className="bg-white rounded-xl border border-[var(--color-merah-risiko)]/20 p-4 hover:shadow-md transition-shadow">
+            </button>
+            <button onClick={() => setActiveStatus('PERLU RUJUKAN')} className="bg-white rounded-xl border border-[var(--color-merah-risiko)]/20 p-4 hover:shadow-md transition-shadow text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-[var(--color-merah-risiko)]" />
                 <p className="text-xs font-semibold text-[var(--color-merah-risiko)]">Perlu Rujukan</p>
               </div>
               <p className="text-3xl font-bold text-[var(--color-merah-risiko)]">{perluRujukan}</p>
-            </Link>
+            </button>
           </div>
 
-          {/* ─── Charts Row ─── */}
+          {/* ─── Charts ─── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Status Distribution - Donut */}
             <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5">
               <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-5">Distribusi Status</h2>
               <div className="flex items-center justify-center gap-8">
-                <DonutChart
-                  data={[
-                    { value: sehat, color: 'var(--color-hijau-ok)' },
-                    { value: perluPemantauan, color: 'var(--color-kuning-warn)' },
-                    { value: perluRujukan, color: 'var(--color-merah-risiko)' },
-                  ]}
-                  total={totalWarga}
-                />
+                <DonutChart data={[{ value: sehat, color: 'var(--color-hijau-ok)' }, { value: perluPemantauan, color: 'var(--color-kuning-warn)' }, { value: perluRujukan, color: 'var(--color-merah-risiko)' }]} total={totalWarga} />
                 <div className="space-y-3">
                   {[
                     { label: 'Sehat', value: sehat, color: 'bg-[var(--color-hijau-ok)]', textColor: 'text-[var(--color-hijau-ok)]' },
@@ -322,18 +352,10 @@ export default function RekapPage() {
               </div>
             </div>
 
-            {/* Age Distribution - Donut */}
             <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5">
               <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-5">Distribusi Usia</h2>
               <div className="flex items-center justify-center gap-8">
-                <DonutChart
-                  data={[
-                    { value: remaja, color: 'var(--color-padi)' },
-                    { value: dewasa, color: 'var(--color-hutan)' },
-                    { value: lansia, color: 'var(--color-tinta-lembut)' },
-                  ]}
-                  total={totalWarga}
-                />
+                <DonutChart data={[{ value: remaja, color: 'var(--color-padi)' }, { value: dewasa, color: 'var(--color-hutan)' }, { value: lansia, color: 'var(--color-tinta-lembut)' }]} total={totalWarga} />
                 <div className="space-y-3">
                   {[
                     { label: 'Remaja (<18)', value: remaja, color: 'bg-[var(--color-padi)]', textColor: 'text-[var(--color-padi)]' },
@@ -353,9 +375,8 @@ export default function RekapPage() {
             </div>
           </div>
 
-          {/* ─── Monthly Bar Chart + Risk Indicators ─── */}
+          {/* ─── Monthly + Risk ─── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Bar Chart */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-[var(--color-garis)] p-5">
               <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-4">Pemeriksaan per Bulan</h2>
               {monthlyData.length > 0 ? (
@@ -364,14 +385,9 @@ export default function RekapPage() {
                     <div key={month} className="flex-1 flex flex-col items-center gap-1.5">
                       <span className="text-[11px] font-bold text-[var(--color-tinta)]">{count}</span>
                       <div className="w-full flex items-end justify-center" style={{ height: '120px' }}>
-                        <div
-                          className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-[var(--color-hutan)] to-[var(--color-hutan)]/80"
-                          style={{ height: `${totalWarga > 0 ? (count / maxMonthly) * 100 : 0}%`, minHeight: count > 0 ? '8px' : '0' }}
-                        />
+                        <div className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-[var(--color-hutan)] to-[var(--color-hutan)]/80" style={{ height: `${totalWarga > 0 ? (count / maxMonthly) * 100 : 0}%`, minHeight: count > 0 ? '8px' : '0' }} />
                       </div>
-                      <span className="text-[11px] text-[var(--color-tinta-lembut)] font-medium">
-                        {new Date(month + '-01').toLocaleDateString('id-ID', { month: 'short' })}
-                      </span>
+                      <span className="text-[11px] text-[var(--color-tinta-lembut)] font-medium">{new Date(month + '-01').toLocaleDateString('id-ID', { month: 'short' })}</span>
                     </div>
                   ))}
                 </div>
@@ -380,7 +396,6 @@ export default function RekapPage() {
               )}
             </div>
 
-            {/* Risk Indicators */}
             <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5">
               <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-4">Indikator Risiko</h2>
               <div className="space-y-3">
@@ -396,10 +411,7 @@ export default function RekapPage() {
                       <span className="font-bold text-[var(--color-tinta)]">{item.count}</span>
                     </div>
                     <div className="h-2 bg-[var(--color-kertas-dalam)] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${item.color} rounded-full`}
-                        style={{ width: totalWarga > 0 ? `${(item.count / totalWarga) * 100}%` : '0%' }}
-                      />
+                      <div className={`h-full ${item.color} rounded-full`} style={{ width: totalWarga > 0 ? `${(item.count / totalWarga) * 100}%` : '0%' }} />
                     </div>
                   </div>
                 ))}
@@ -430,11 +442,7 @@ export default function RekapPage() {
                 <tbody>
                   {recentData.map((d) => {
                     const usia = hitungUsia(d.tanggal_lahir, new Date());
-                    const statusCfg = d.catatan === 'SEHAT'
-                      ? 'text-[var(--color-hijau-ok)]'
-                      : d.catatan === 'PERLU PEMANTAUAN'
-                      ? 'text-[var(--color-kuning-warn)]'
-                      : 'text-[var(--color-merah-risiko)]';
+                    const statusCfg = d.catatan === 'SEHAT' ? 'text-[var(--color-hijau-ok)]' : d.catatan === 'PERLU PEMANTAUAN' ? 'text-[var(--color-kuning-warn)]' : 'text-[var(--color-merah-risiko)]';
                     return (
                       <tr key={d.id} className="border-b border-[var(--color-garis)]/50 hover:bg-[var(--color-kertas-dalam)]/50">
                         <td className="py-2.5 px-2 text-xs font-mono">{d.nik}</td>
@@ -449,9 +457,7 @@ export default function RekapPage() {
                     );
                   })}
                   {recentData.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="py-8 text-center text-xs text-[var(--color-tinta-lembut)]">Tidak ada data</td>
-                    </tr>
+                    <tr><td colSpan={8} className="py-8 text-center text-xs text-[var(--color-tinta-lembut)]">Tidak ada data</td></tr>
                   )}
                 </tbody>
               </table>
@@ -463,7 +469,55 @@ export default function RekapPage() {
   );
 }
 
-/* ─── Donut Chart (pure SVG) ─── */
+/* ─── Warga Card ─── */
+function WargaCard({ data: d, expandedId, setExpandedId, statusColor }: { data: Pemeriksaan; expandedId: string | null; setExpandedId: (id: string | null) => void; statusColor: string }) {
+  const usia = hitungUsia(d.tanggal_lahir, new Date());
+  const isExpanded = expandedId === d.id;
+  const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
+  const td = klasifikasiTD(d.td_sistol, d.td_diastol);
+  const gds = klasifikasiGDS(d.gds);
+  const kol = klasifikasiKolesterol(d.kolesterol_total);
+  const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
+
+  const badgeClass = (s: string) => s === 'ok' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)]' : s === 'warn' ? 'bg-[var(--color-kuning-warn-bg)] text-[var(--color-kuning-warn)]' : 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)]';
+
+  return (
+    <div className="bg-white rounded-xl border border-[var(--color-garis)] overflow-hidden transition-shadow hover:shadow-md">
+      <button onClick={() => setExpandedId(isExpanded ? null : d.id)} className="w-full p-4 text-left flex items-center gap-3">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColor }} />
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-[var(--color-tinta)]">{maskNIK(d.nik)}</p>
+          <p className="text-xs text-[var(--color-tinta-lembut)] mt-0.5">{usia} tahun · {d.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} · {d.tanggal_periksa}</p>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-tinta-lembut)" strokeWidth="2" className={`shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
+      </button>
+
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-3 border-t border-[var(--color-garis)]/50">
+          <div className="grid grid-cols-4 gap-2 mt-3">
+            {[{ label: 'BB', value: `${d.berat_badan} kg` }, { label: 'TB', value: `${d.tinggi_badan} cm` }, { label: 'LP', value: `${d.lingkar_pinggang} cm` }, { label: 'IMT', value: (d.berat_badan / Math.pow(d.tinggi_badan / 100, 2)).toFixed(1) }].map((item) => (
+              <div key={item.label} className="text-center p-2 bg-[var(--color-kertas-dalam)] rounded-lg">
+                <p className="text-[10px] text-[var(--color-tinta-lembut)]">{item.label}</p>
+                <p className="text-xs font-bold text-[var(--color-tinta)]">{item.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1.5">
+            {[{ label: 'IMT', data: imt }, { label: 'TD', data: td }, { label: 'GDS', data: gds }, ...(kol ? [{ label: 'KOL', data: kol }] : []), { label: 'LP', data: lp }].map((item) => (
+              <div key={item.label} className="flex items-center gap-2 text-xs">
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeClass(item.data.status)}`}>{item.label}</span>
+                <span className={`font-semibold ${item.data.status === 'ok' ? 'text-[var(--color-hijau-ok)]' : item.data.status === 'warn' ? 'text-[var(--color-kuning-warn)]' : 'text-[var(--color-merah-risiko)]'}`}>{item.data.label}</span>
+                {item.data.keterangan && <span className="text-[var(--color-tinta-lembut)]">— {item.data.keterangan}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Donut Chart ─── */
 function DonutChart({ data, total }: { data: { value: number; color: string }[]; total: number }) {
   const size = 140;
   const strokeWidth = 22;
@@ -483,20 +537,9 @@ function DonutChart({ data, total }: { data: { value: number; color: string }[];
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle
-          cx={size / 2} cy={size / 2} r={radius}
-          fill="none" stroke="var(--color-kertas-dalam)" strokeWidth={strokeWidth}
-        />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--color-kertas-dalam)" strokeWidth={strokeWidth} />
         {segments.map((seg, i) => (
-          <circle
-            key={i}
-            cx={size / 2} cy={size / 2} r={radius}
-            fill="none"
-            stroke={seg.color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={`${seg.len} ${circumference - seg.len}`}
-            strokeDashoffset={-seg.offset}
-          />
+          <circle key={i} cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={seg.color} strokeWidth={strokeWidth} strokeDasharray={`${seg.len} ${circumference - seg.len}`} strokeDashoffset={-seg.offset} />
         ))}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
