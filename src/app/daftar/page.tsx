@@ -544,10 +544,24 @@ export default function DaftarPage() {
                 const imt = (d.berat_badan / Math.pow(d.tinggi_badan / 100, 2)).toFixed(1);
                 const usia = hitungUsia(d.tanggal_lahir, new Date());
                 const isExpanded = expandedId === d.id;
+                const isRujukan = d.catatan?.includes('PERLU RUJUKAN');
+                const isPemantauan = d.catatan?.includes('PERLU PEMANTAUAN');
+                const isSehat = !isRujukan && !isPemantauan;
+                const imtKlas = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
+                const tdKlas = klasifikasiTD(d.td_sistol, d.td_diastol);
+                const gdsKlas = klasifikasiGulaDarah(d.gds, d.jenis_gula_darah || 'sewaktu');
+
+                const rowBg = isRujukan
+                  ? 'bg-[var(--color-merah-risiko-bg)]/30'
+                  : isPemantauan
+                  ? 'bg-[var(--color-kuning-warn-bg)]/30'
+                  : '';
+
+                const dotClass = (s: string) => s === 'ok' ? 'bg-[var(--color-hijau-ok)]' : s === 'warn' ? 'bg-[var(--color-kuning-warn)]' : 'bg-[var(--color-merah-risiko)]';
 
                 return (
                   <Fragment key={d.id}>
-                    <tr className={`border-t border-[var(--color-garis)] ${selectedIds.has(d.id) ? 'bg-[var(--color-daun-muda)]' : ''}`}>
+                    <tr className={`border-t border-[var(--color-garis)] ${rowBg} ${selectedIds.has(d.id) ? 'bg-[var(--color-daun-muda)]' : ''}`}>
                       <td className="px-3 py-2 text-center">
                         <input
                           type="checkbox"
@@ -561,10 +575,21 @@ export default function DaftarPage() {
                       <td className="px-3 py-2 text-center">{d.jenis_kelamin}</td>
                       <td className="px-3 py-2 text-right">{d.berat_badan}</td>
                       <td className="px-3 py-2 text-right">{d.tinggi_badan}</td>
-                      <td className="px-3 py-2 text-right">{imt}</td>
-                      <td className="px-3 py-2 text-center text-xs">{d.td_sistol}/{d.td_diastol}</td>
+                      <td className="px-3 py-2 text-right">
+                        <span className="inline-flex items-center gap-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${dotClass(imtKlas.status)}`} />
+                          {imt}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-center text-xs">
+                        <span className="inline-flex items-center gap-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${dotClass(tdKlas.status)}`} />
+                          {d.td_sistol}/{d.td_diastol}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 text-center">
-                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(d.catatan)}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(d.catatan)}`}>
+                          {!isSehat && <span>★</span>}
                           {getStatusLabel(d.catatan)}
                         </span>
                       </td>
