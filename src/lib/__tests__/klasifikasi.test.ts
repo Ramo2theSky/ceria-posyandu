@@ -69,15 +69,15 @@ describe('klasifikasiGDS', () => {
     expect(result.status).toBe('ok');
   });
 
-  it('Pra-diabetes jika GDS 140-199', () => {
+  it('Pre-diabetes jika GDS 140-199', () => {
     const result = klasifikasiGDS(160);
-    expect(result.label).toBe('Pra-diabetes');
+    expect(result.label).toBe('Pre-diabetes');
     expect(result.status).toBe('warn');
   });
 
-  it('Diabetes Melitus jika GDS >= 200', () => {
+  it('Diabetes jika GDS >= 200', () => {
     const result = klasifikasiGDS(220);
-    expect(result.label).toBe('Diabetes Melitus');
+    expect(result.label).toBe('Diabetes');
     expect(result.status).toBe('risk');
   });
 });

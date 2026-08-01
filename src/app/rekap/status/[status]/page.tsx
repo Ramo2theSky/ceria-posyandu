@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP } from '@/lib/klasifikasi';
+import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, type JenisGulaDarah } from '@/lib/klasifikasi';
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 
@@ -18,6 +18,7 @@ interface Pemeriksaan {
   td_sistol: number;
   td_diastol: number;
   gds: number;
+  jenis_gula_darah: JenisGulaDarah;
   kolesterol_total: number | null;
   tanggal_periksa: string;
   catatan: string;
@@ -235,7 +236,8 @@ function WargaCard({
   const isExpanded = expandedId === d.id;
   const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
   const td = klasifikasiTD(d.td_sistol, d.td_diastol);
-  const gds = klasifikasiGDS(d.gds);
+  const jenisGD = d.jenis_gula_darah || 'sewaktu';
+  const gds = klasifikasiGulaDarah(d.gds, jenisGD);
   const kol = klasifikasiKolesterol(d.kolesterol_total);
   const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
 
@@ -287,7 +289,7 @@ function WargaCard({
             {[
               { label: 'IMT', data: imt },
               { label: 'TD', data: td },
-              { label: 'GDS', data: gds },
+              { label: jenisGD === 'puasa' ? 'GDP' : 'GDS', data: gds },
               ...(kol ? [{ label: 'KOL', data: kol }] : []),
               { label: 'LP', data: lp },
             ].map((item) => (

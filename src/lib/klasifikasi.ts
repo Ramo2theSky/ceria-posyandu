@@ -23,10 +23,25 @@ export function klasifikasiTD(sistol: number, diastol: number): HasilKlasifikasi
   return { label: 'Normal', status: 'ok', keterangan: 'Optimal' };
 }
 
+export type JenisGulaDarah = 'puasa' | 'sewaktu';
+
+export function klasifikasiGulaDarah(nilai: number, jenis: JenisGulaDarah): HasilKlasifikasi {
+  if (jenis === 'puasa') {
+    if (nilai >= 126) return { label: 'Diabetes', status: 'risk', keterangan: 'GDP tinggi, rujuk dokter, konfirmasi HbA1c/TTGO' };
+    if (nilai >= 110) return { label: 'Pre-diabetes', status: 'warn', keterangan: 'GDP batas atas, perlu pemantauan' };
+    return { label: 'Normal', status: 'ok', keterangan: 'GDP normal (puasa)' };
+  }
+  if (nilai >= 200) return { label: 'Diabetes', status: 'risk', keterangan: 'GDS tinggi, rujuk dokter, konfirmasi HbA1c/TTGO' };
+  if (nilai >= 140) return { label: 'Pre-diabetes', status: 'warn', keterangan: 'GDS batas atas, toleransi glukosa terganggu' };
+  return { label: 'Normal', status: 'ok', keterangan: 'GDS normal' };
+}
+
+export function butuhKlasifikasiGulaDarah(nilai: number): boolean {
+  return nilai >= 110 && nilai <= 200;
+}
+
 export function klasifikasiGDS(gds: number): HasilKlasifikasi {
-  if (gds >= 200) return { label: 'Diabetes Melitus', status: 'risk', keterangan: 'Rujuk dokter, konfirmasi HbA1c/TTGO' };
-  if (gds >= 140) return { label: 'Pra-diabetes', status: 'warn', keterangan: 'Toleransi glukosa terganggu' };
-  return { label: 'Normal', status: 'ok', keterangan: 'Kadar gula terkontrol' };
+  return klasifikasiGulaDarah(gds, 'sewaktu');
 }
 
 export function klasifikasiKolesterol(kol: number | null): HasilKlasifikasi | null {

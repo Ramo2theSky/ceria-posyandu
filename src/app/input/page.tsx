@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan, peringatanUsiaRemaja } from '@/lib/klasifikasi';
+import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, butuhKlasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan, peringatanUsiaRemaja, type JenisGulaDarah } from '@/lib/klasifikasi';
 import { validasiNIK, validasiTanggalLahir } from '@/lib/validasi';
 import { logActivity } from '@/lib/activity-log';
 import { supabase } from '@/lib/supabase';
@@ -24,6 +24,7 @@ interface Pengukuran {
   tdSistol: string;
   tdDiastol: string;
   gds: string;
+  jenisGulaDarah: JenisGulaDarah | '';
   kolesterol: string;
   tanggalPeriksa: string;
 }
@@ -52,6 +53,7 @@ export default function InputPage() {
     tdSistol: '',
     tdDiastol: '',
     gds: '',
+    jenisGulaDarah: '',
     kolesterol: '',
     tanggalPeriksa: new Date().toISOString().split('T')[0],
   });
@@ -60,6 +62,8 @@ export default function InputPage() {
   const [nikCheck, setNikCheck] = useState<CekNIKResult | null>(null);
   const [checkingNIK, setCheckingNIK] = useState(false);
   const [showRiwayat, setShowRiwayat] = useState(false);
+  const [showGulaDarahPopup, setShowGulaDarahPopup] = useState(false);
+  const [pendingGDS, setPendingGDS] = useState<number | null>(null);
   const nikTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const usia = identitas.tanggalLahir ? hitungUsia(identitas.tanggalLahir, new Date()) : 0;
@@ -125,6 +129,9 @@ export default function InputPage() {
     if (isNaN(sistol) || sistol < 60 || sistol > 300) newErrors.tdSistol = 'TD sistolik tidak wajar';
     if (isNaN(diastol) || diastol < 30 || diastol > 200) newErrors.tdDiastol = 'TD diastolik tidak wajar';
     if (isNaN(gds) || gds < 40 || gds > 600) newErrors.gds = 'GDS tidak wajar (40-600 mg/dL)';
+    if (!isNaN(gds) && gds >= 40 && gds <= 600 && butuhKlasifikasiGulaDarah(gds) && !pengukuran.jenisGulaDarah) {
+      newErrors.gds = 'Pilih jenis gula darah (Puasa/Sewaktu)';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -138,9 +145,10 @@ export default function InputPage() {
     const kol = pengukuran.kolesterol ? parseInt(pengukuran.kolesterol) : null;
     const lp = parseFloat(pengukuran.lingkarPinggang);
 
+    const jenisGD = (pengukuran.jenisGulaDarah || 'sewaktu') as JenisGulaDarah;
     const hasilIMT = klasifikasiIMT(bb, tb);
     const hasilTD = klasifikasiTD(sistol, diastol);
-    const hasilGDS = klasifikasiGDS(gds);
+    const hasilGDS = klasifikasiGulaDarah(gds, jenisGD);
     const hasilKol = klasifikasiKolesterol(kol);
     const hasilLP = klasifikasiLP(lp, identitas.jenisKelamin as 'L' | 'P');
     const keseluruhan = statusKeseluruhan([hasilIMT, hasilTD, hasilGDS, hasilKol, hasilLP]);
@@ -148,7 +156,7 @@ export default function InputPage() {
     return {
       imt: { ...hasilIMT, nilai: (bb / Math.pow(tb / 100, 2)).toFixed(1) },
       td: { ...hasilTD, nilai: `${sistol}/${diastol}` },
-      gds: { ...hasilGDS, nilai: gds.toString() },
+      gds: { ...hasilGDS, nilai: gds.toString(), jenis: jenisGD },
       kolesterol: hasilKol ? { ...hasilKol, nilai: kol!.toString() } : null,
       lp: { ...hasilLP, nilai: lp.toString() },
       keseluruhan,
@@ -177,6 +185,7 @@ export default function InputPage() {
         td_sistol: parseInt(pengukuran.tdSistol),
         td_diastol: parseInt(pengukuran.tdDiastol),
         gds: parseInt(pengukuran.gds),
+        jenis_gula_darah: (pengukuran.jenisGulaDarah || 'sewaktu') as JenisGulaDarah,
         kolesterol_total: pengukuran.kolesterol ? parseInt(pengukuran.kolesterol) : null,
         tanggal_periksa: pengukuran.tanggalPeriksa,
         catatan: getHasil().keseluruhan,
@@ -470,16 +479,29 @@ export default function InputPage() {
                 />
               </div>
 
-              {/* GDS */}
+              {/* Gula Darah */}
               <InputField
-                label="GDS"
+                label="Gula Darah (GDS/GDP)"
                 hint="mg/dL"
                 type="number"
                 value={pengukuran.gds}
-                onChange={(v) => setPengukuran({ ...pengukuran, gds: v })}
+                onChange={(v) => {
+                  const newGDS = v;
+                  setPengukuran({ ...pengukuran, gds: newGDS, jenisGulaDarah: '' });
+                  const gdsNum = parseInt(newGDS);
+                  if (!isNaN(gdsNum) && butuhKlasifikasiGulaDarah(gdsNum)) {
+                    setPendingGDS(gdsNum);
+                    setShowGulaDarahPopup(true);
+                  }
+                }}
                 error={errors.gds}
                 inputMode="numeric"
               />
+              {pengukuran.gds && pengukuran.jenisGulaDarah && (
+                <p className="text-xs text-[var(--color-hutan)] font-semibold -mt-2 ml-1">
+                  {pengukuran.jenisGulaDarah === 'puasa' ? '🔬 GDP (Puasa)' : '🍽️ GDS (Sewaktu)'}
+                </p>
+              )}
 
               {/* Kolesterol */}
               <InputField
@@ -542,6 +564,59 @@ export default function InputPage() {
       {showRiwayat && nikCheck?.riwayat && nikCheck.riwayat.length > 0 && (
         <RiwayatModal riwayat={nikCheck.riwayat} onClose={() => setShowRiwayat(false)} />
       )}
+
+      {/* GDP/GDS Popup */}
+      {showGulaDarahPopup && pendingGDS !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setShowGulaDarahPopup(false); setPendingGDS(null); }}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[var(--color-kuning-warn-bg)] flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-padi)" strokeWidth="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <h3 className="font-bold text-lg text-[var(--color-tinta)]">Kadar Gula Darah: {pendingGDS} mg/dL</h3>
+              <p className="text-sm text-[var(--color-tinta-lembut)] mt-2">
+                Hasil klasifikasi berbeda tergantung kondisi puasa atau tidak.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setPengukuran({ ...pengukuran, jenisGulaDarah: 'puasa' });
+                  setShowGulaDarahPopup(false);
+                  setPendingGDS(null);
+                }}
+                className="w-full py-4 px-4 rounded-xl border-2 border-[var(--color-garis)] hover:border-[var(--color-hutan)] hover:bg-[var(--color-hutan)]/5 transition-all text-left"
+              >
+                <p className="font-semibold text-[var(--color-tinta)]">🔬 Puasa (GDP)</p>
+                <p className="text-xs text-[var(--color-tinta-lembut)] mt-0.5">
+                  {pendingGDS < 110 ? 'Normal' : pendingGDS <= 125 ? 'Pre-diabetes' : 'Diabetes'}
+                </p>
+              </button>
+
+              <button
+                onClick={() => {
+                  setPengukuran({ ...pengukuran, jenisGulaDarah: 'sewaktu' });
+                  setShowGulaDarahPopup(false);
+                  setPendingGDS(null);
+                }}
+                className="w-full py-4 px-4 rounded-xl border-2 border-[var(--color-garis)] hover:border-[var(--color-hutan)] hover:bg-[var(--color-hutan)]/5 transition-all text-left"
+              >
+                <p className="font-semibold text-[var(--color-tinta)]">🍽️ Sewaktu (GDS)</p>
+                <p className="text-xs text-[var(--color-tinta-lembut)] mt-0.5">
+                  {pendingGDS < 140 ? 'Normal' : pendingGDS <= 199 ? 'Pre-diabetes' : 'Diabetes'}
+                </p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -599,10 +674,14 @@ interface HasilItem {
   nilai: string;
 }
 
+interface HasilGDS extends HasilItem {
+  jenis: JenisGulaDarah;
+}
+
 interface HasilData {
   imt: HasilItem;
   td: HasilItem;
-  gds: HasilItem;
+  gds: HasilGDS;
   kolesterol: HasilItem | null;
   lp: HasilItem;
   keseluruhan: string;
@@ -623,7 +702,7 @@ function HasilCard({ hasil }: { hasil: HasilData }) {
   const items = [
     { name: 'IMT', data: hasil.imt },
     { name: 'Tekanan Darah', data: hasil.td },
-    { name: 'GDS', data: hasil.gds },
+    { name: hasil.gds.jenis === 'puasa' ? 'GDP' : 'GDS', data: hasil.gds },
     { name: 'Lingkar Pinggang', data: hasil.lp },
   ];
 

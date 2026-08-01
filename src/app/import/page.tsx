@@ -121,7 +121,7 @@ export default function ImportPage() {
         return;
       }
 
-      const { klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan } = await import('@/lib/klasifikasi');
+      const { klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan } = await import('@/lib/klasifikasi');
 
       const rows = data
         .filter((item) => item.data)
@@ -129,7 +129,7 @@ export default function ImportPage() {
           const d = item.data!;
           const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
           const td = d.td_diastol !== null ? klasifikasiTD(d.td_sistol, d.td_diastol) : { status: 'warn' as const, label: 'Data tidak lengkap', keterangan: '' };
-          const gds = klasifikasiGDS(d.gds);
+          const gds = klasifikasiGulaDarah(d.gds, 'sewaktu');
           const kol = d.kolesterol_total !== null ? klasifikasiKolesterol(d.kolesterol_total) : null;
           const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
           const keseluruhan = statusKeseluruhan([imt, td, gds, kol, lp]);
@@ -144,6 +144,7 @@ export default function ImportPage() {
             td_sistol: d.td_sistol,
             td_diastol: d.td_diastol ?? 0,
             gds: d.gds,
+            jenis_gula_darah: 'sewaktu',
             kolesterol_total: d.kolesterol_total,
             tanggal_periksa: new Date().toISOString().split('T')[0],
             catatan: keseluruhan,

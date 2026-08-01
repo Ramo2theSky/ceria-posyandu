@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP } from '@/lib/klasifikasi';
+import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, type JenisGulaDarah } from '@/lib/klasifikasi';
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
@@ -21,6 +21,7 @@ interface Pemeriksaan {
   td_sistol: number;
   td_diastol: number;
   gds: number;
+  jenis_gula_darah: JenisGulaDarah;
   kolesterol_total: number | null;
   tanggal_periksa: string;
   catatan: string;
@@ -114,7 +115,10 @@ export default function RekapPage() {
   const lansia = filtered.filter(d => hitungUsia(d.tanggal_lahir, new Date()) >= 60).length;
 
   const hipertensi = filtered.filter(d => d.td_sistol >= 140 || d.td_diastol >= 90).length;
-  const diabetes = filtered.filter(d => d.gds >= 200).length;
+  const diabetes = filtered.filter(d => {
+    const jenis = d.jenis_gula_darah || 'sewaktu';
+    return klasifikasiGulaDarah(d.gds, jenis).status === 'risk';
+  }).length;
   const kolesterolTinggi = filtered.filter(d => d.kolesterol_total !== null && d.kolesterol_total >= 240).length;
   const obesitas = filtered.filter(d => {
     const imt = d.berat_badan / Math.pow(d.tinggi_badan / 100, 2);
@@ -141,11 +145,11 @@ export default function RekapPage() {
   }, [filtered]);
 
   const handleExportCSV = () => {
-    const headers = ['NIK', 'Tanggal Lahir', 'Jenis Kelamin', 'No. Telepon', 'Alamat', 'BB', 'TB', 'LP', 'TD Sistol', 'TD Diastol', 'GDS', 'Kolesterol', 'Tanggal Periksa', 'Status'];
+    const headers = ['NIK', 'Tanggal Lahir', 'Jenis Kelamin', 'No. Telepon', 'Alamat', 'BB', 'TB', 'LP', 'TD Sistol', 'TD Diastol', 'Gula Darah', 'Jenis GDP/GDS', 'Kolesterol', 'Tanggal Periksa', 'Status'];
     const rows = filtered.map(d => [
       `'${d.nik}'`, d.tanggal_lahir, d.jenis_kelamin, d.no_telepon || '-', d.alamat || '-',
       d.berat_badan, d.tinggi_badan, d.lingkar_pinggang, d.td_sistol, d.td_diastol,
-      d.gds, d.kolesterol_total || '-', d.tanggal_periksa, d.catatan || '-',
+      d.gds, d.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS', d.kolesterol_total || '-', d.tanggal_periksa, d.catatan || '-',
     ]);
     const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -506,7 +510,8 @@ function WargaCard({ data: d, expandedId, setExpandedId, statusColor, onShowRiwa
   const isExpanded = expandedId === d.id;
   const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
   const td = klasifikasiTD(d.td_sistol, d.td_diastol);
-  const gds = klasifikasiGDS(d.gds);
+  const jenisGD = d.jenis_gula_darah || 'sewaktu';
+  const gds = klasifikasiGulaDarah(d.gds, jenisGD);
   const kol = klasifikasiKolesterol(d.kolesterol_total);
   const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
 
@@ -534,7 +539,7 @@ function WargaCard({ data: d, expandedId, setExpandedId, statusColor, onShowRiwa
             ))}
           </div>
           <div className="space-y-1.5">
-            {[{ label: 'IMT', data: imt }, { label: 'TD', data: td }, { label: 'GDS', data: gds }, ...(kol ? [{ label: 'KOL', data: kol }] : []), { label: 'LP', data: lp }].map((item) => (
+            {[{ label: 'IMT', data: imt }, { label: 'TD', data: td }, { label: jenisGD === 'puasa' ? 'GDP' : 'GDS', data: gds }, ...(kol ? [{ label: 'KOL', data: kol }] : []), { label: 'LP', data: lp }].map((item) => (
               <div key={item.label} className="flex items-center gap-2 text-xs">
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeClass(item.data.status)}`}>{item.label}</span>
                 <span className={`font-semibold ${item.data.status === 'ok' ? 'text-[var(--color-hijau-ok)]' : item.data.status === 'warn' ? 'text-[var(--color-kuning-warn)]' : 'text-[var(--color-merah-risiko)]'}`}>{item.data.label}</span>

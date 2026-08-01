@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { hitungUsia } from './klasifikasi';
+import { hitungUsia, type JenisGulaDarah } from './klasifikasi';
 
 export interface RiwayatPemeriksaan {
   id: string;
@@ -12,6 +12,7 @@ export interface RiwayatPemeriksaan {
   td_sistol: number;
   td_diastol: number;
   gds: number;
+  jenis_gula_darah: JenisGulaDarah;
   kolesterol_total: number | null;
   tanggal_periksa: string;
   catatan: string;

@@ -98,7 +98,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
                           )}
                         </td>
                         <td className="px-3 py-2 text-right">
-                          <span className="text-[var(--color-tinta)]">{d.gds}</span>
+                          <span className="text-[var(--color-tinta)]">{d.gds} ({d.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS'})</span>
                           {prev && d.gds !== prev.gds && (
                             <DeltaChip value={d.gds - prev.gds} />
                           )}
@@ -139,7 +139,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
                 ]}
               />
               <LineChart
-                title="GDS (mg/dL)"
+                title="Gula Darah (mg/dL)"
                 data={sorted}
                 lines={[
                   { key: 'gds', label: 'GDS', color: 'var(--color-hutan)' },

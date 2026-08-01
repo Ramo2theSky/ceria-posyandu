@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP, peringatanUsiaRemaja } from '@/lib/klasifikasi';
+import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, peringatanUsiaRemaja, type JenisGulaDarah } from '@/lib/klasifikasi';
 import { parseBarisCSV, DataParsed, BarisCSV } from '@/lib/csv-parser';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
@@ -23,6 +23,7 @@ interface Pemeriksaan {
   td_sistol: number;
   td_diastol: number;
   gds: number;
+  jenis_gula_darah: JenisGulaDarah;
   kolesterol_total: number | null;
   tanggal_periksa: string;
   catatan: string;
@@ -252,13 +253,13 @@ export default function DaftarPage() {
         return;
       }
 
-      const { klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan } = await import('@/lib/klasifikasi');
+      const { klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan } = await import('@/lib/klasifikasi');
 
       const rows = validData.map((item) => {
         const d = item.data!;
         const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
         const td = d.td_diastol !== null ? klasifikasiTD(d.td_sistol, d.td_diastol) : { status: 'warn' as const, label: 'Data tidak lengkap', keterangan: '' };
-        const gds = klasifikasiGDS(d.gds);
+        const gds = klasifikasiGulaDarah(d.gds, 'sewaktu');
         const kol = d.kolesterol_total !== null ? klasifikasiKolesterol(d.kolesterol_total) : null;
         const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
         const keseluruhan = statusKeseluruhan([imt, td, gds, kol, lp]);
@@ -273,6 +274,7 @@ export default function DaftarPage() {
           td_sistol: d.td_sistol,
           td_diastol: d.td_diastol ?? 0,
           gds: d.gds,
+          jenis_gula_darah: 'sewaktu',
           kolesterol_total: d.kolesterol_total,
           tanggal_periksa: importDate,
           catatan: keseluruhan,
@@ -589,7 +591,8 @@ export default function DaftarPage() {
                     {isExpanded && (() => {
                       const imt = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
                       const td = klasifikasiTD(d.td_sistol, d.td_diastol);
-                      const gds = klasifikasiGDS(d.gds);
+                      const jenisGD = d.jenis_gula_darah || 'sewaktu';
+                      const gds = klasifikasiGulaDarah(d.gds, jenisGD);
                       const kol = klasifikasiKolesterol(d.kolesterol_total);
                       const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
                       const usia = hitungUsia(d.tanggal_lahir, new Date());
@@ -659,10 +662,10 @@ export default function DaftarPage() {
 
                                 <div className={`p-3 rounded-xl border-2 ${badgeClass(gds.status)}`}>
                                   <div className="flex justify-between items-center mb-1">
-                                    <span className="font-bold text-[var(--color-tinta)]">Gula Darah</span>
+                                    <span className="font-bold text-[var(--color-tinta)]">{jenisGD === 'puasa' ? 'GDP' : 'GDS'}</span>
                                     <span className={`text-xs font-bold uppercase ${textClass(gds.status)}`}>{gds.label}</span>
                                   </div>
-                                  <p className="text-sm text-[var(--color-tinta)]">{d.gds} mg/dL</p>
+                                  <p className="text-sm text-[var(--color-tinta)]">{d.gds} mg/dL ({jenisGD === 'puasa' ? 'Puasa' : 'Sewaktu'})</p>
                                   <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">{gds.keterangan}</p>
                                 </div>
 
