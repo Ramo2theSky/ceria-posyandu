@@ -7,6 +7,8 @@ import { parseBarisCSV, DataParsed, BarisCSV } from '@/lib/csv-parser';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
 import { maskNIK } from '@/lib/formatters';
+import { cekNIK, RiwayatPemeriksaan } from '@/lib/riwayat';
+import RiwayatModal from '@/components/RiwayatModal';
 
 interface Pemeriksaan {
   id: string;
@@ -73,6 +75,10 @@ export default function DaftarPage() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  const [riwayatOpen, setRiwayatOpen] = useState(false);
+  const [riwayatData, setRiwayatData] = useState<RiwayatPemeriksaan[] | null>(null);
+  const [riwayatLoading, setRiwayatLoading] = useState(false);
+
   const [showImport, setShowImport] = useState(false);
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [importing, setImporting] = useState(false);
@@ -122,6 +128,15 @@ export default function DaftarPage() {
     } catch {
       alert('Gagal menghapus data');
     }
+  };
+
+  const handleLihatRiwayat = async (nik: string) => {
+    setRiwayatLoading(true);
+    setRiwayatOpen(true);
+    setRiwayatData(null);
+    const result = await cekNIK(nik);
+    setRiwayatData(result?.riwayat || []);
+    setRiwayatLoading(false);
   };
 
   const toggleSelect = (id: string) => {
@@ -677,6 +692,14 @@ export default function DaftarPage() {
                                 </div>
                               </div>
                             </div>
+
+                            <button
+                              onClick={() => handleLihatRiwayat(d.nik)}
+                              disabled={riwayatLoading}
+                              className="w-full px-4 py-3 btn-gold text-white font-bold rounded-xl min-h-12"
+                            >
+                              📊 Lihat Riwayat Pemeriksaan
+                            </button>
                           </td>
                         </tr>
                       );
@@ -708,6 +731,20 @@ export default function DaftarPage() {
           </div>
         )}
       </main>
+
+      <RiwayatModal
+        riwayat={riwayatData || []}
+        onClose={() => { setRiwayatOpen(false); setRiwayatData(null); }}
+      />
+
+      {riwayatLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl px-6 py-4 shadow-lg flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-[var(--color-hutan)] border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-[var(--color-tinta)]">Memuat riwayat...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
