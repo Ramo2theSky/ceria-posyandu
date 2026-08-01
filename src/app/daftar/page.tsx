@@ -732,18 +732,20 @@ export default function DaftarPage() {
         )}
       </main>
 
-      <RiwayatModal
-        riwayat={riwayatData || []}
-        onClose={() => { setRiwayatOpen(false); setRiwayatData(null); }}
-      />
-
-      {riwayatLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl px-6 py-4 shadow-lg flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-[var(--color-hutan)] border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-[var(--color-tinta)]">Memuat riwayat...</span>
-          </div>
-        </div>
+      {(riwayatOpen || riwayatLoading) && (
+        <>
+          {riwayatLoading && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="bg-white rounded-xl px-6 py-4 shadow-lg flex items-center gap-3">
+                <div className="w-5 h-5 border-2 border-[var(--color-hutan)] border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-[var(--color-tinta)]">Memuat riwayat...</span>
+              </div>
+            </div>
+          )}
+          {!riwayatLoading && riwayatData && riwayatData.length > 0 && (
+            <RiwayatModal riwayat={riwayatData} onClose={() => { setRiwayatOpen(false); setRiwayatData(null); }} />
+          )}
+        </>
       )}
     </div>
   );
