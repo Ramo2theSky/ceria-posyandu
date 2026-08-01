@@ -158,7 +158,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
                 title="Berat Badan (kg) & IMT"
                 data={sorted}
                 lines={[
-                  { key: 'berat_badan', label: 'BB', color: 'var(--color-hutan)' },
+                  { key: 'berat_badan', label: 'BB', color: '#4A9DAA' },
                   { key: 'imt', label: 'IMT', color: 'var(--color-padi)' },
                 ]}
               />
@@ -166,7 +166,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
                 title="Tekanan Darah (mmHg)"
                 data={sorted}
                 lines={[
-                  { key: 'td_sistol', label: 'Sistol', color: 'var(--color-merah-risiko)' },
+                  { key: 'td_sistol', label: 'Sistol', color: '#E87C6B' },
                   { key: 'td_diastol', label: 'Diastol', color: 'var(--color-kuning-warn)' },
                 ]}
               />
@@ -174,7 +174,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
                 title="Gula Darah (mg/dL)"
                 data={sorted}
                 lines={[
-                  { key: 'gds', label: 'GDS', color: 'var(--color-hutan)' },
+                  { key: 'gds', label: 'GDS', color: '#4A9DAA' },
                 ]}
               />
             </div>
