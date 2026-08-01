@@ -17,7 +17,9 @@ UPDATE pemeriksaan SET jenis_gula_darah = 'sewaktu' WHERE jenis_gula_darah IS NU
 -- ============================================================
 -- UPDATE VIEW: v_pemeriksaan_aktif
 -- ============================================================
-CREATE OR REPLACE VIEW v_pemeriksaan_aktif AS
+DROP VIEW IF EXISTS v_pemeriksaan_aktif;
+CREATE VIEW v_pemeriksaan_aktif
+WITH (security_invoker = true) AS
 SELECT
     id,
     nik,
@@ -36,7 +38,6 @@ SELECT
     dibuat_oleh,
     dibuat_pada,
     diubah_pada,
-    -- Computed fields
     FLOOR(EXTRACT(YEAR FROM AGE(tanggal_periksa, tanggal_lahir)))::SMALLINT AS usia,
     ROUND((berat_badan / POWER(tinggi_badan / 100.0, 2))::NUMERIC, 1) AS imt
 FROM pemeriksaan
@@ -45,7 +46,9 @@ WHERE dihapus_pada IS NULL;
 -- ============================================================
 -- UPDATE VIEW: v_pemeriksaan_recycle_bin
 -- ============================================================
-CREATE OR REPLACE VIEW v_pemeriksaan_recycle_bin AS
+DROP VIEW IF EXISTS v_pemeriksaan_recycle_bin;
+CREATE VIEW v_pemeriksaan_recycle_bin
+WITH (security_invoker = true) AS
 SELECT
     id,
     nik,
