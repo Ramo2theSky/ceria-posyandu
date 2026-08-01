@@ -472,6 +472,20 @@ export default function DashboardPage() {
                 </Link>
               ))}
             </div>
+
+            <div className="flex justify-center">
+              <Link
+                href="/recycle-bin"
+                className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 transition"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Recycle Bin
+              </Link>
+            </div>
+
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">

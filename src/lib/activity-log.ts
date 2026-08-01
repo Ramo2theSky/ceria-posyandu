@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 export async function logActivity(
-  action: 'insert' | 'update' | 'delete',
+  action: 'insert' | 'update' | 'delete' | 'restore',
   targetNik: string,
   detail: string
 ) {
