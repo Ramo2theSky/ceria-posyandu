@@ -294,10 +294,8 @@ export default function RekapPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Status Distribution - Donut */}
             <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-sm text-[var(--color-tinta)]">Distribusi Status</h2>
-              </div>
-              <div className="flex items-center gap-6">
+              <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-5">Distribusi Status</h2>
+              <div className="flex items-center justify-center gap-8">
                 <DonutChart
                   data={[
                     { value: sehat, color: 'var(--color-hijau-ok)' },
@@ -306,16 +304,18 @@ export default function RekapPage() {
                   ]}
                   total={totalWarga}
                 />
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[
-                    { label: 'Sehat', value: sehat, color: 'bg-[var(--color-hijau-ok)]' },
-                    { label: 'Perlu Pemantauan', value: perluPemantauan, color: 'bg-[var(--color-kuning-warn)]' },
-                    { label: 'Perlu Rujukan', value: perluRujukan, color: 'bg-[var(--color-merah-risiko)]' },
+                    { label: 'Sehat', value: sehat, color: 'bg-[var(--color-hijau-ok)]', textColor: 'text-[var(--color-hijau-ok)]' },
+                    { label: 'Perlu Pemantauan', value: perluPemantauan, color: 'bg-[var(--color-kuning-warn)]', textColor: 'text-[var(--color-kuning-warn)]' },
+                    { label: 'Perlu Rujukan', value: perluRujukan, color: 'bg-[var(--color-merah-risiko)]', textColor: 'text-[var(--color-merah-risiko)]' },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
-                      <span className="text-xs text-[var(--color-tinta)]">{item.label}</span>
-                      <span className="text-xs font-bold text-[var(--color-tinta)] ml-1">{item.value}</span>
+                    <div key={item.label} className="flex items-center gap-3">
+                      <span className={`w-3 h-3 rounded-full shrink-0 ${item.color}`} />
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[var(--color-tinta-lembut)]">{item.label}</span>
+                        <span className={`text-lg font-bold ${item.textColor}`}>{item.value}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -324,10 +324,8 @@ export default function RekapPage() {
 
             {/* Age Distribution - Donut */}
             <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-sm text-[var(--color-tinta)]">Distribusi Usia</h2>
-              </div>
-              <div className="flex items-center gap-6">
+              <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-5">Distribusi Usia</h2>
+              <div className="flex items-center justify-center gap-8">
                 <DonutChart
                   data={[
                     { value: remaja, color: 'var(--color-padi)' },
@@ -336,16 +334,18 @@ export default function RekapPage() {
                   ]}
                   total={totalWarga}
                 />
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[
-                    { label: 'Remaja (<18)', value: remaja, color: 'bg-[var(--color-padi)]' },
-                    { label: 'Dewasa (18-59)', value: dewasa, color: 'bg-[var(--color-hutan)]' },
-                    { label: 'Lansia (≥60)', value: lansia, color: 'bg-[var(--color-tinta-lembut)]' },
+                    { label: 'Remaja (<18)', value: remaja, color: 'bg-[var(--color-padi)]', textColor: 'text-[var(--color-padi)]' },
+                    { label: 'Dewasa (18-59)', value: dewasa, color: 'bg-[var(--color-hutan)]', textColor: 'text-[var(--color-hutan)]' },
+                    { label: 'Lansia (≥60)', value: lansia, color: 'bg-[var(--color-tinta-lembut)]', textColor: 'text-[var(--color-tinta)]' },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
-                      <span className="text-xs text-[var(--color-tinta)]">{item.label}</span>
-                      <span className="text-xs font-bold text-[var(--color-tinta)] ml-1">{item.value}</span>
+                    <div key={item.label} className="flex items-center gap-3">
+                      <span className={`w-3 h-3 rounded-full shrink-0 ${item.color}`} />
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[var(--color-tinta-lembut)]">{item.label}</span>
+                        <span className={`text-lg font-bold ${item.textColor}`}>{item.value}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -359,15 +359,17 @@ export default function RekapPage() {
             <div className="lg:col-span-2 bg-white rounded-2xl border border-[var(--color-garis)] p-5">
               <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-4">Pemeriksaan per Bulan</h2>
               {monthlyData.length > 0 ? (
-                <div className="flex items-end gap-2 h-40">
+                <div className="flex items-end gap-3 h-44 px-2">
                   {monthlyData.map(([month, count]) => (
-                    <div key={month} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-[10px] font-bold text-[var(--color-tinta)]">{count}</span>
-                      <div
-                        className="w-full rounded-t-lg bg-[var(--color-hutan)] transition-all duration-500"
-                        style={{ height: `${(count / maxMonthly) * 100}%`, minHeight: '4px' }}
-                      />
-                      <span className="text-[10px] text-[var(--color-tinta-lembut)]">
+                    <div key={month} className="flex-1 flex flex-col items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-[var(--color-tinta)]">{count}</span>
+                      <div className="w-full flex items-end justify-center" style={{ height: '120px' }}>
+                        <div
+                          className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-[var(--color-hutan)] to-[var(--color-hutan)]/80"
+                          style={{ height: `${totalWarga > 0 ? (count / maxMonthly) * 100 : 0}%`, minHeight: count > 0 ? '8px' : '0' }}
+                        />
+                      </div>
+                      <span className="text-[11px] text-[var(--color-tinta-lembut)] font-medium">
                         {new Date(month + '-01').toLocaleDateString('id-ID', { month: 'short' })}
                       </span>
                     </div>
@@ -461,43 +463,44 @@ export default function RekapPage() {
   );
 }
 
-/* ─── Donut Chart (pure CSS) ─── */
+/* ─── Donut Chart (pure SVG) ─── */
 function DonutChart({ data, total }: { data: { value: number; color: string }[]; total: number }) {
-  const size = 120;
-  const strokeWidth = 20;
+  const size = 140;
+  const strokeWidth = 22;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  let accumulated = 0;
-  const segments = data.filter(d => d.value > 0).map((d) => {
+  const filtered = data.filter(d => d.value > 0);
+  let offset = 0;
+  const segments = filtered.map((d) => {
     const pct = total > 0 ? d.value / total : 0;
-    const dashArray = pct * circumference;
-    const dashOffset = -accumulated * circumference;
-    accumulated += pct;
-    return { ...d, dashArray, dashOffset };
+    const len = pct * circumference;
+    const seg = { ...d, len, offset };
+    offset += len;
+    return seg;
   });
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--color-kertas-dalam)" strokeWidth={strokeWidth} />
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none" stroke="var(--color-kertas-dalam)" strokeWidth={strokeWidth}
+        />
         {segments.map((seg, i) => (
           <circle
             key={i}
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
+            cx={size / 2} cy={size / 2} r={radius}
             fill="none"
             stroke={seg.color}
             strokeWidth={strokeWidth}
-            strokeDasharray={`${seg.dashArray} ${circumference - seg.dashArray}`}
-            strokeDashoffset={seg.dashOffset}
-            strokeLinecap="round"
+            strokeDasharray={`${seg.len} ${circumference - seg.len}`}
+            strokeDashoffset={-seg.offset}
           />
         ))}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <p className="text-2xl font-bold text-[var(--color-tinta)]">{total}</p>
+        <p className="text-3xl font-bold text-[var(--color-tinta)]">{total}</p>
         <p className="text-[10px] text-[var(--color-tinta-lembut)]">total</p>
       </div>
     </div>
