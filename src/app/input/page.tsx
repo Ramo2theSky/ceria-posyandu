@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGDS, klasifikasiKolesterol, klasifikasiLP, statusKeseluruhan, peringatanUsiaRemaja } from '@/lib/klasifikasi';
 import { validasiNIK, validasiTanggalLahir } from '@/lib/validasi';
 import { logActivity } from '@/lib/activity-log';
 import { supabase } from '@/lib/supabase';
+import { cekNIK, type CekNIKResult } from '@/lib/riwayat';
+import RiwayatModal from '@/components/RiwayatModal';
 
 interface Identitas {
   nik: string;
@@ -55,12 +57,47 @@ export default function InputPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [nikCheck, setNikCheck] = useState<CekNIKResult | null>(null);
+  const [checkingNIK, setCheckingNIK] = useState(false);
+  const [showRiwayat, setShowRiwayat] = useState(false);
+  const nikTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const usia = identitas.tanggalLahir ? hitungUsia(identitas.tanggalLahir, new Date()) : 0;
   const peringatanRemaja = usia > 0 ? peringatanUsiaRemaja(usia) : null;
   const imt = identitas.jenisKelamin && pengukuran.beratBadan && pengukuran.tinggiBadan
     ? klasifikasiIMT(parseFloat(pengukuran.beratBadan), parseFloat(pengukuran.tinggiBadan))
     : null;
+
+  // Auto-check NIK with debounce
+  useEffect(() => {
+    if (nikTimerRef.current) clearTimeout(nikTimerRef.current);
+    if (identitas.nik.length !== 16) {
+      setNikCheck(null);
+      setCheckingNIK(false);
+      return;
+    }
+    setCheckingNIK(true);
+    nikTimerRef.current = setTimeout(async () => {
+      try {
+        const result = await cekNIK(identitas.nik);
+        setNikCheck(result);
+        // Auto-fill from last record
+        if (result.sudahAda && result.dataTerakhir) {
+          const td = result.dataTerakhir;
+          setIdentitas(prev => ({
+            ...prev,
+            tanggalLahir: prev.tanggalLahir || td.tanggal_lahir,
+            jenisKelamin: prev.jenisKelamin || td.jenis_kelamin,
+          }));
+        }
+      } catch {
+        setNikCheck(null);
+      } finally {
+        setCheckingNIK(false);
+      }
+    }, 500);
+    return () => { if (nikTimerRef.current) clearTimeout(nikTimerRef.current); };
+  }, [identitas.nik]);
 
   const validateStep1 = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -226,6 +263,47 @@ export default function InputPage() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6"/></svg>
                 }
               />
+
+              {/* NIK Status Badge */}
+              {identitas.nik.length === 16 && (
+                <div className={`px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                  checkingNIK
+                    ? 'bg-[var(--color-kertas-dalam)] border border-[var(--color-garis)]'
+                    : nikCheck?.sudahAda
+                    ? 'bg-[var(--color-padi)]/10 border border-[var(--color-padi)]/30'
+                    : 'bg-[var(--color-hijau-ok-bg)] border border-[var(--color-hijau-ok)]/20'
+                }`}>
+                  {checkingNIK ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-[var(--color-tinta-lembut)] border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm text-[var(--color-tinta-lembut)]">Mengecek NIK...</span>
+                    </>
+                  ) : nikCheck?.sudahAda ? (
+                    <>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-padi)" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-[var(--color-tinta)]">
+                          Sudah diperiksa {nikCheck.jumlahPemeriksaan}x
+                        </p>
+                        <p className="text-xs text-[var(--color-tinta-lembut)]">
+                          Terakhir: {nikCheck.terakhirPeriksa ? new Date(nikCheck.terakhirPeriksa).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowRiwayat(true)}
+                        className="px-3 py-1.5 rounded-lg bg-[var(--color-padi)] text-white text-xs font-semibold hover:brightness-110 transition-all"
+                      >
+                        Lihat Riwayat
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-hijau-ok)" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+                      <p className="text-sm text-[var(--color-hijau-ok)]">NIK baru — warga pertama kali diperiksa</p>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Tanggal Lahir + JK */}
               <div className="grid grid-cols-2 gap-3">
@@ -459,6 +537,11 @@ export default function InputPage() {
           )}
         </div>
       </div>
+
+      {/* Riwayat Modal */}
+      {showRiwayat && nikCheck?.riwayat && nikCheck.riwayat.length > 0 && (
+        <RiwayatModal riwayat={nikCheck.riwayat} onClose={() => setShowRiwayat(false)} />
+      )}
     </div>
   );
 }
