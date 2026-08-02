@@ -163,3 +163,54 @@ input:focus, button:focus, textarea:focus, select:focus {
   height: 100%;
   pointer-events: none;
 }
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    font-size: 11px !important;
+  }
+
+  /* Hide non-print elements */
+  nav, footer, .no-print {
+    display: none !important;
+  }
+
+  /* Hide sidebar filter on print */
+  aside {
+    display: none !important;
+  }
+
+  /* Hide fixed elements like top bar */
+  .fixed {
+    display: none !important;
+  }
+
+  /* Main content full width */
+  main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Show print-only content */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Page break before full data table */
+  .print-only table {
+    page-break-before: always;
+  }
+
+  /* Avoid page breaks inside rows */
+  tr {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  * {
+    box-shadow: none !important;
+  }
+}

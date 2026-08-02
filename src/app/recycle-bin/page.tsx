@@ -29,6 +29,8 @@ export default function RecycleBinPage() {
   const [data, setData] = useState<DeletedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(25);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,6 +56,10 @@ export default function RecycleBinPage() {
     const q = search.toLowerCase();
     return data.filter(d => d.nik.includes(q));
   }, [data, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * perPage, safePage * perPage);
 
   async function handleRestore(id: string) {
     if (!confirm('Pulihkan data ini ke daftar utama?')) return;
@@ -149,14 +155,23 @@ export default function RecycleBinPage() {
           </div>
         )}
 
-        <div className="mb-4">
+        <div className="flex gap-2 mb-4">
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="flex-1 px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
             placeholder="Cari NIK..."
           />
+          <select
+            value={perPage}
+            onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+            className="px-3 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
         </div>
 
         {/* Empty state */}
@@ -174,9 +189,9 @@ export default function RecycleBinPage() {
         )}
 
         {/* List */}
-        {filtered.length > 0 && (
+        {paginated.length > 0 && (
           <div className="space-y-2">
-            {filtered.map((d) => (
+            {paginated.map((d) => (
               <div
                 key={d.id}
                 className="bg-white rounded-xl border border-[var(--color-garis)] p-4 flex items-center gap-4"
@@ -228,6 +243,31 @@ export default function RecycleBinPage() {
         {search && filtered.length === 0 && data.length > 0 && (
           <div className="text-center py-8">
             <p className="text-sm text-[var(--color-tinta-lembut)]">Tidak ditemukan NIK &quot;{search}&quot;</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {filtered.length > perPage && (
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-xs text-[var(--color-tinta-lembut)]">
+              {(safePage - 1) * perPage + 1}–{Math.min(safePage * perPage, filtered.length)} dari {filtered.length}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--color-garis)] disabled:opacity-40 hover:bg-[var(--color-kertas-dalam)] transition-colors"
+              >
+                ←
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={safePage >= totalPages}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--color-garis)] disabled:opacity-40 hover:bg-[var(--color-kertas-dalam)] transition-colors"
+              >
+                →
+              </button>
+            </div>
           </div>
         )}
       </main>

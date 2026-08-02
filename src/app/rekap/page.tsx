@@ -160,6 +160,10 @@ export default function RekapPage() {
     a.click();
   };
 
+  const handleExportPDF = () => {
+    window.print();
+  };
+
   const toggleFilterUsia = (val: string) => {
     setFilterUsia(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
   };
@@ -261,12 +265,25 @@ export default function RekapPage() {
       </div>
 
       <div className="px-4 pb-20 flex gap-5 max-w-[1400px] mx-auto">
+        {/* ─── Mobile Filter Backdrop ─── */}
+        {showFilters && (
+          <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setShowFilters(false)} />
+        )}
+
         {/* ─── Sidebar Filter ─── */}
-        <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 shrink-0 space-y-4`}>
+        <aside className={`
+          fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-[var(--color-kertas)] p-4 overflow-y-auto transition-transform lg:relative lg:inset-auto lg:w-64 lg:z-auto lg:transform-none lg:block lg:p-0 lg:translate-x-0
+          ${showFilters ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
           <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5 space-y-5">
-            <div className="flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-hutan)" strokeWidth="2"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
-              <h3 className="font-bold text-sm text-[var(--color-tinta)]">Filter</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-hutan)" strokeWidth="2"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+                <h3 className="font-bold text-sm text-[var(--color-tinta)]">Filter</h3>
+              </div>
+              <button onClick={() => setShowFilters(false)} className="lg:hidden w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)]">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
             </div>
 
             <div>
@@ -319,18 +336,22 @@ export default function RekapPage() {
             )}
           </div>
         </aside>
-
-        {/* ─── Main Content ─── */}
         <main className="flex-1 min-w-0 space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-[var(--color-tinta)]">Rekap Desa</h1>
               <p className="text-xs text-[var(--color-tinta-lembut)]">Dashboard overview data kesehatan warga</p>
             </div>
-            <button onClick={handleExportCSV} className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-hutan)] hover:text-[var(--color-hutan)] transition-colors flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-              Export CSV
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={handleExportCSV} className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-hutan)] hover:text-[var(--color-hutan)] transition-colors flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Export CSV
+              </button>
+              <button onClick={handleExportPDF} className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-padi)] hover:text-[var(--color-padi)] transition-colors flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Export PDF
+              </button>
+            </div>
           </div>
 
           {/* ─── Stat Cards (clickable) ─── */}
@@ -496,6 +517,51 @@ export default function RekapPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* ─── Print-Only: Full Data Table ─── */}
+          <div className="print-only hidden">
+            <div className="mt-8 mb-4">
+              <h2 className="text-lg font-bold text-black">Data Lengkap Pemeriksaan</h2>
+              <p className="text-sm text-gray-600">{filtered.length} data · Dicetak: {new Date().toLocaleString('id-ID')}</p>
+            </div>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="border-b-2 border-black">
+                  <th className="text-left py-1 px-1 font-bold">No</th>
+                  <th className="text-left py-1 px-1 font-bold">NIK</th>
+                  <th className="text-left py-1 px-1 font-bold">Usia</th>
+                  <th className="text-left py-1 px-1 font-bold">JK</th>
+                  <th className="text-left py-1 px-1 font-bold">BB/TB</th>
+                  <th className="text-left py-1 px-1 font-bold">LP</th>
+                  <th className="text-left py-1 px-1 font-bold">TD</th>
+                  <th className="text-left py-1 px-1 font-bold">GDS</th>
+                  <th className="text-left py-1 px-1 font-bold">Kolesterol</th>
+                  <th className="text-left py-1 px-1 font-bold">Tanggal</th>
+                  <th className="text-left py-1 px-1 font-bold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((d, i) => {
+                  const usia = hitungUsia(d.tanggal_lahir, new Date());
+                  return (
+                    <tr key={d.id} className="border-b border-gray-300">
+                      <td className="py-1 px-1">{i + 1}</td>
+                      <td className="py-1 px-1 font-mono">{d.nik}</td>
+                      <td className="py-1 px-1">{usia} th</td>
+                      <td className="py-1 px-1">{d.jenis_kelamin}</td>
+                      <td className="py-1 px-1">{d.berat_badan}/{d.tinggi_badan}</td>
+                      <td className="py-1 px-1">{d.lingkar_pinggang}</td>
+                      <td className="py-1 px-1">{d.td_sistol}/{d.td_diastol}</td>
+                      <td className="py-1 px-1">{d.gds} ({d.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS'})</td>
+                      <td className="py-1 px-1">{d.kolesterol_total ?? '-'}</td>
+                      <td className="py-1 px-1">{d.tanggal_periksa}</td>
+                      <td className="py-1 px-1 font-bold">{d.catatan || '-'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </main>
       </div>
