@@ -34,6 +34,7 @@ export default function ImportPage() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<ImportNotice | null>(null);
   const [fileName, setFileName] = useState('');
+  const [importDate, setImportDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -162,7 +163,7 @@ export default function ImportPage() {
             gds: d.gds,
             jenis_gula_darah: 'sewaktu',
             kolesterol_total: d.kolesterol_total,
-            tanggal_periksa: new Date().toISOString().split('T')[0],
+            tanggal_periksa: importDate,
             catatan: keseluruhan,
             dibuat_oleh: userId,
           };
@@ -207,6 +208,15 @@ export default function ImportPage() {
           <p className="text-[var(--color-tinta-lembut)] text-sm mb-4">
             Upload file CSV dengan format: NIK, TTL, L/P, BB, TB, LP, TD, GDS, CL
           </p>
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Tanggal Periksa</label>
+            <input
+              type="date"
+              value={importDate}
+              onChange={(e) => setImportDate(e.target.value)}
+              className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+            />
+          </div>
           {notice && (
             <div
               className={`mb-4 p-3 rounded-xl text-sm border ${notice.kind === 'success' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)] border-[var(--color-hijau-ok)]/20' : notice.kind === 'error' ? 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border-[var(--color-merah-risiko)]/20' : 'bg-[var(--color-kertas-dalam)] text-[var(--color-tinta)] border-[var(--color-garis)]'}`}
