@@ -179,23 +179,30 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-[var(--color-hutan)] text-white p-4 flex justify-between items-center">
-        <button onClick={() => router.push('/dashboard')} className="text-sm">
-          ← Kembali
+    <div className="min-h-screen bg-[var(--color-kertas)]">
+      <div className="flex items-center justify-between px-6 py-4">
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
+          <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
+          <span className="font-semibold hidden sm:inline">CERIA</span>
         </button>
-        <h1 className="text-lg font-bold">Import CSV</h1>
-        <a href="/dashboard"><img src="/ceria-logo.png" alt="CERIA" className="h-6 opacity-80" /></a>
-      </header>
+        <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)] hover:text-[var(--color-tinta)]">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+        </button>
+      </div>
 
-      <main className="flex-1 p-4 space-y-4">
-        <div className="bg-white rounded-xl p-4 border-2 border-[var(--color-garis)]">
+      <main className="px-4 pb-8 max-w-2xl mx-auto space-y-4">
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-[var(--color-tinta)]">Import CSV</h1>
+          <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">Upload file CSV untuk impor data warga sekaligus</p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
           <p className="text-[var(--color-tinta-lembut)] text-sm mb-4">
             Upload file CSV dengan format: NIK, TTL, L/P, BB, TB, LP, TD, GDS, CL
           </p>
           {notice && (
             <div
-              className={`mb-4 p-3 rounded-xl text-sm border ${notice.kind === 'success' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)] border-[var(--color-hijau-ok)]/20' : notice.kind === 'error' ? 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border-[var(--color-merah-risiko)]/20' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+              className={`mb-4 p-3 rounded-xl text-sm border ${notice.kind === 'success' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)] border-[var(--color-hijau-ok)]/20' : notice.kind === 'error' ? 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border-[var(--color-merah-risiko)]/20' : 'bg-[var(--color-kertas-dalam)] text-[var(--color-tinta)] border-[var(--color-garis)]'}`}
             >
               {notice.message}
             </div>
@@ -209,15 +216,15 @@ export default function ImportPage() {
           />
           <button
             onClick={() => fileRef.current?.click()}
-            className="w-full py-3 border-2 border-dashed border-[var(--color-garis)] rounded-xl text-[var(--color-tinta-lembut)]"
+            className="w-full py-3 border border-dashed border-[var(--color-garis)] rounded-xl text-[var(--color-tinta-lembut)] text-sm hover:bg-[var(--color-kertas-dalam)] transition-colors"
           >
             Pilih File CSV
           </button>
         </div>
 
         {data.length > 0 && (
-          <div className="bg-white rounded-xl p-4 border-2 border-[var(--color-garis)]">
-            <h2 className="font-bold text-[var(--color-tinta)] mb-3">
+          <div className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
+            <h2 className="font-bold text-sm text-[var(--color-tinta)] mb-3">
               {data.filter(d => d.data).length} data valid, {data.filter(d => d.error).length} error
             </h2>
 
@@ -235,7 +242,7 @@ export default function ImportPage() {
             <button
               onClick={handleImport}
               disabled={saving || data.filter(d => d.data).length === 0}
-              className="w-full mt-4 bg-[var(--color-hutan)] hover:bg-[var(--color-hutan-gelap)] text-white font-bold py-3 px-6 rounded-xl transition-colors disabled:opacity-50"
+              className="w-full mt-4 bg-[var(--color-hutan)] hover:bg-[var(--color-hutan-gelap)] text-white font-semibold text-sm py-3 px-6 rounded-xl transition-colors disabled:opacity-50"
             >
               {saving ? 'Mengimpor...' : `Impor ${data.filter(d => d.data).length} Data`}
             </button>

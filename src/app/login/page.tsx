@@ -79,13 +79,13 @@ export default function LoginPage() {
               className="h-16 mx-auto mb-4"
             />
           </Link>
-          <p className="text-[var(--color-tinta-lembut)] mt-2 text-sm">Desa Jurangjero, Karanganom, Klaten</p>
+
         </div>
 
-        <form onSubmit={handleLogin} className="glass rounded-2xl p-6 shadow-soft-lg border border-[var(--color-garis)]">
+        <form onSubmit={handleLogin} className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-bold text-[var(--color-tinta)] mb-2">
+              <label htmlFor="email" className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">
                 Email
               </label>
               <input
@@ -93,14 +93,14 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg bg-white/50"
+                className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
                 placeholder="Masukkan email"
                 required
               />
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-bold text-[var(--color-tinta)]">
+                <label htmlFor="password" className="block text-xs font-semibold text-[var(--color-tinta-lembut)]">
                   Kata Sandi
                 </label>
                 <Link
@@ -116,7 +116,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border-2 border-[var(--color-garis)] rounded-xl text-lg bg-white/50"
+                  className="w-full px-4 py-3 pr-12 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
                   placeholder="Masukkan kata sandi"
                   required
                 />
@@ -155,7 +155,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mt-4 p-3 rounded-xl text-sm" style={{ background: 'linear-gradient(135deg, #F8E2DF 0%, #f0c8c3 100%)', color: 'var(--color-merah-risiko)' }}>
+            <div className="mt-4 p-3 rounded-xl text-sm bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border border-[var(--color-merah-risiko)]/20">
               {error}
             </div>
           )}
@@ -163,7 +163,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 btn-primary text-white font-bold py-4 px-6 rounded-xl text-lg disabled:opacity-50"
+            className="w-full mt-6 bg-[var(--color-hutan)] text-white font-semibold text-sm py-3.5 rounded-xl hover:bg-[var(--color-hutan-gelap)] transition-colors disabled:opacity-50"
           >
             {loading ? 'Masuk...' : 'Masuk'}
           </button>

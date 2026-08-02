@@ -86,8 +86,7 @@ export default function ResetPasswordPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft-lg"
-            style={{ background: 'linear-gradient(135deg, var(--color-hutan) 0%, #2a6b64 100%)' }}
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-[var(--color-hutan)]"
           >
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -105,32 +104,26 @@ export default function ResetPasswordPage() {
         </div>
 
         {checking ? (
-          <div className="glass rounded-2xl p-6 shadow-soft-lg border border-[var(--color-garis)] text-center text-[var(--color-tinta-lembut)]">
+          <div className="bg-white rounded-2xl p-5 border border-[var(--color-garis)] text-center text-[var(--color-tinta-lembut)]">
             Memverifikasi link reset...
           </div>
         ) : !ready ? (
-          <div className="glass rounded-2xl p-6 shadow-soft-lg border border-[var(--color-garis)]">
-            <div
-              className="p-3 rounded-xl text-sm mb-4"
-              style={{
-                background: 'linear-gradient(135deg, #F8E2DF 0%, #f0c8c3 100%)',
-                color: 'var(--color-merah-risiko)',
-              }}
-            >
+          <div className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
+            <div className="p-3 rounded-xl text-sm mb-4 bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border border-[var(--color-merah-risiko)]/20">
               Link reset tidak valid atau sudah kedaluwarsa.
             </div>
             <Link
               href="/lupa-password"
-              className="block w-full text-center btn-primary text-white font-bold py-4 px-6 rounded-xl text-lg"
+              className="block w-full text-center bg-[var(--color-hutan)] text-white font-semibold text-sm py-3.5 px-6 rounded-xl hover:bg-[var(--color-hutan-gelap)] transition-colors"
             >
               Minta Link Baru
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 shadow-soft-lg border border-[var(--color-garis)]">
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
             <div className="space-y-4">
               <div>
-                <label htmlFor="password" className="block text-sm font-bold text-[var(--color-tinta)] mb-2">
+                <label htmlFor="password" className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">
                   Kata Sandi Baru
                 </label>
                 <input
@@ -138,7 +131,7 @@ export default function ResetPasswordPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg bg-white/50"
+                  className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
                   placeholder="Minimal 6 karakter"
                   required
                   minLength={6}
@@ -147,7 +140,7 @@ export default function ResetPasswordPage() {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-bold text-[var(--color-tinta)] mb-2"
+                  className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1"
                 >
                   Konfirmasi Kata Sandi
                 </label>
@@ -156,7 +149,7 @@ export default function ResetPasswordPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg bg-white/50"
+                  className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
                   placeholder="Ulangi kata sandi baru"
                   required
                   minLength={6}
@@ -165,13 +158,7 @@ export default function ResetPasswordPage() {
             </div>
 
             {error && (
-              <div
-                className="mt-4 p-3 rounded-xl text-sm"
-                style={{
-                  background: 'linear-gradient(135deg, #F8E2DF 0%, #f0c8c3 100%)',
-                  color: 'var(--color-merah-risiko)',
-                }}
-              >
+              <div className="mt-4 p-3 rounded-xl text-sm bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border border-[var(--color-merah-risiko)]/20">
                 {error}
               </div>
             )}
@@ -179,7 +166,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 btn-primary text-white font-bold py-4 px-6 rounded-xl text-lg disabled:opacity-50"
+              className="w-full mt-6 bg-[var(--color-hutan)] text-white font-semibold text-sm py-3.5 rounded-xl hover:bg-[var(--color-hutan-gelap)] transition-colors disabled:opacity-50"
             >
               {loading ? 'Menyimpan...' : 'Simpan Kata Sandi'}
             </button>

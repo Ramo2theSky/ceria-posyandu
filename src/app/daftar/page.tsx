@@ -369,9 +369,9 @@ export default function DaftarPage() {
   const paged = sorted.slice((page - 1) * perPage, page * perPage);
 
   const getStatusColor = (catatan: string) => {
-    if (catatan?.includes('PERLU RUJUKAN')) return 'badge-rujukan';
-    if (catatan?.includes('PERLU PEMANTAUAN')) return 'badge-pemantauan';
-    return 'badge-sehat';
+    if (catatan?.includes('PERLU RUJUKAN')) return 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)]';
+    if (catatan?.includes('PERLU PEMANTAUAN')) return 'bg-[var(--color-kuning-warn-bg)] text-[var(--color-kuning-warn)]';
+    return 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)]';
   };
 
   const getStatusLabel = (catatan: string) => {
@@ -389,16 +389,23 @@ export default function DaftarPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="header-gradient text-white p-4 flex justify-between items-center shadow-soft">
-        <button onClick={() => router.push('/dashboard')} className="text-sm hover:opacity-80">
-          ← Kembali
+    <div className="min-h-screen bg-[var(--color-kertas)]">
+      <div className="flex items-center justify-between px-6 py-4">
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
+          <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
+          <span className="font-semibold hidden sm:inline">CERIA</span>
         </button>
-        <h1 className="text-lg font-bold">Daftar Warga</h1>
-        <a href="/dashboard"><img src="/ceria-logo.png" alt="CERIA" className="h-6 opacity-80" /></a>
-      </header>
+        <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)] hover:text-[var(--color-tinta)]">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+        </button>
+      </div>
 
-      <main className="flex-1 p-4">
+      <main className="px-4 pb-8 max-w-5xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-[var(--color-tinta)]">Daftar Warga</h1>
+          <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">Kelola data warga yang sudah diperiksa</p>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <input
             type="text"
@@ -407,35 +414,35 @@ export default function DaftarPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="flex-1 px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg glass"
+            className="flex-1 px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
             placeholder="Cari NIK atau tanggal..."
           />
-          <button onClick={() => setShowImport(true)} className="px-6 py-3 btn-gold text-white font-bold rounded-xl min-h-12">
+          <button onClick={() => setShowImport(true)} className="px-4 py-2 bg-[var(--color-padi)] text-white font-semibold text-sm rounded-lg hover:brightness-110 transition-all">
             📥 Impor CSV
           </button>
         </div>
 
         {showImport && (
-          <div className="mb-4 glass rounded-xl p-4 border border-[var(--color-garis)] shadow-soft">
+          <div className="mb-4 bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-[var(--color-tinta)]">Impor Data CSV</h3>
-              <button onClick={() => { setShowImport(false); setCsvData([]); }} className="text-[var(--color-tinta-lembut)] min-h-12 min-w-12 flex items-center justify-center">
+              <h3 className="font-bold text-sm text-[var(--color-tinta)]">Impor Data CSV</h3>
+              <button onClick={() => { setShowImport(false); setCsvData([]); }} className="text-[var(--color-tinta-lembut)] flex items-center justify-center">
                 ✕
               </button>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-3">
               <div className="flex-1">
-                <label className="block text-sm font-bold text-[var(--color-tinta)] mb-1">Tanggal Periksa</label>
+                <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Tanggal Periksa</label>
                 <input
                   type="date"
                   value={importDate}
                   onChange={(e) => setImportDate(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-[var(--color-garis)] rounded-lg glass min-h-12"
+                  className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-bold text-[var(--color-tinta)] mb-1">File CSV</label>
+                <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">File CSV</label>
                 <input
                   type="file"
                   ref={fileRef}
@@ -445,7 +452,7 @@ export default function DaftarPage() {
                 />
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="w-full py-2 border-2 border-dashed border-[var(--color-garis)] rounded-lg text-[var(--color-tinta-lembut)] text-sm min-h-12"
+                  className="w-full py-2 border border-dashed border-[var(--color-garis)] rounded-lg text-[var(--color-tinta-lembut)] text-sm hover:bg-[var(--color-kertas-dalam)] transition-colors"
                 >
                   Pilih File
                 </button>
@@ -455,9 +462,9 @@ export default function DaftarPage() {
             {csvData.length > 0 && (
               <div>
                 <p className="text-sm mb-2">
-                  <span className="text-[var(--color-hijau-ok)] font-bold">{csvData.filter((d) => d.data).length} valid</span>
+                  <span className="text-[var(--color-hijau-ok)] font-semibold">{csvData.filter((d) => d.data).length} valid</span>
                   {' · '}
-                  <span className="text-[var(--color-merah-risiko)] font-bold">{csvData.filter((d) => d.error).length} error</span>
+                  <span className="text-[var(--color-merah-risiko)] font-semibold">{csvData.filter((d) => d.error).length} error</span>
                 </p>
 
                 <div className="max-h-64 overflow-y-auto space-y-1 mb-3">
@@ -471,7 +478,7 @@ export default function DaftarPage() {
                 <button
                   onClick={handleImport}
                   disabled={importing || csvData.filter((d) => d.data && !d.error).length === 0}
-                  className="w-full btn-primary text-white font-bold py-3 rounded-xl disabled:opacity-50 min-h-12"
+                  className="w-full bg-[var(--color-hutan)] text-white font-semibold text-sm py-3 rounded-xl hover:bg-[var(--color-hutan-gelap)] transition-colors disabled:opacity-50"
                 >
                   {importing ? 'Mengimpor...' : `Impor ${csvData.filter((d) => d.data && !d.error).length} Data`}
                 </button>
@@ -486,7 +493,7 @@ export default function DaftarPage() {
             {selectedIds.size > 0 && (
               <button
                 onClick={handleBulkDelete}
-                className="px-4 py-2 badge-rujukan text-white font-bold rounded-xl text-sm min-h-12"
+                className="px-4 py-2 bg-[var(--color-merah-risiko)]/90 text-white font-semibold text-sm rounded-lg"
               >
                 🗑 Hapus {selectedIds.size} Data
               </button>
@@ -494,7 +501,7 @@ export default function DaftarPage() {
             <select
               value={perPage}
               onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); setSelectedIds(new Set()); }}
-              className="px-3 py-1 border-2 border-[var(--color-garis)] rounded-lg text-sm glass min-h-12"
+              className="px-3 py-1 border border-[var(--color-garis)] rounded-lg text-sm bg-white text-[var(--color-tinta)]"
             >
               <option value={5}>5 baris</option>
               <option value={25}>25 baris</option>
@@ -504,39 +511,39 @@ export default function DaftarPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm glass rounded-xl border border-[var(--color-garis)]">
+          <table className="w-full text-sm bg-white rounded-2xl border border-[var(--color-garis)]">
             <thead>
-              <tr className="bg-[var(--color-hutan)] text-white">
-                <th className="px-3 py-2 text-center w-10">
+              <tr className="border-b border-[var(--color-garis)]">
+                <th className="px-3 py-2.5 text-center w-10">
                   <input
                     type="checkbox"
                     checked={paged.length > 0 && paged.every((d) => selectedIds.has(d.id))}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded accent-white cursor-pointer"
+                    className="w-4 h-4 rounded accent-[var(--color-hutan)] cursor-pointer"
                   />
                 </th>
-                <th className="px-3 py-2 text-left cursor-pointer" onClick={() => handleSort('nik')}>
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('nik')}>
                   NIK <SortIcon field="nik" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2 text-center cursor-pointer" onClick={() => handleSort('usia')}>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('usia')}>
                   Usia <SortIcon field="usia" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2 text-center cursor-pointer" onClick={() => handleSort('jenis_kelamin')}>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('jenis_kelamin')}>
                   JK <SortIcon field="jenis_kelamin" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2 text-right cursor-pointer" onClick={() => handleSort('berat_badan')}>
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('berat_badan')}>
                   BB <SortIcon field="berat_badan" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2 text-right cursor-pointer" onClick={() => handleSort('tinggi_badan')}>
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('tinggi_badan')}>
                   TB <SortIcon field="tinggi_badan" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2 text-right">IMT</th>
-                <th className="px-3 py-2 text-center">TD</th>
-                <th className="px-3 py-2 text-center cursor-pointer" onClick={() => handleSort('catatan')}>
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-[var(--color-tinta-lembut)]">IMT</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)]">TD</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('catatan')}>
                   Status <SortIcon field="catatan" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2 text-center">Waktu Input</th>
-                <th className="px-3 py-2 text-center">Aksi</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)]">Waktu Input</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)]">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -588,7 +595,7 @@ export default function DaftarPage() {
                         </span>
                       </td>
                       <td className="px-3 py-2 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(d.catatan)}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(d.catatan)}`}>
                           {!isSehat && <span>★</span>}
                           {getStatusLabel(d.catatan)}
                         </span>
@@ -600,13 +607,13 @@ export default function DaftarPage() {
                         <div className="flex gap-1 justify-center">
                           <button
                             onClick={() => setExpandedId(isExpanded ? null : d.id)}
-                            className="px-2 py-1 text-xs glass border border-[var(--color-garis)] rounded min-h-12"
+                            className="px-2 py-1 text-xs border border-[var(--color-garis)] rounded-lg text-[var(--color-tinta)] hover:bg-[var(--color-kertas-dalam)] transition-colors"
                           >
                             {isExpanded ? 'Tutup' : 'Detail'}
                           </button>
                           <button
                             onClick={() => handleDelete(d.id)}
-                            className="px-2 py-1 text-xs badge-rujukan rounded min-h-12"
+                            className="px-2 py-1 text-xs text-[var(--color-merah-risiko)] hover:bg-[var(--color-merah-risiko-bg)] rounded-lg transition-colors"
                           >
                             Hapus
                           </button>
@@ -623,7 +630,7 @@ export default function DaftarPage() {
                       const usia = hitungUsia(d.tanggal_lahir, new Date());
                       const peringatanRemaja = peringatanUsiaRemaja(usia);
 
-                      const badgeClass = (s: string) => s === 'ok' ? 'badge-sehat' : s === 'warn' ? 'badge-pemantauan' : 'badge-rujukan';
+                      const badgeClass = (s: string) => s === 'ok' ? 'bg-[var(--color-hijau-ok-bg)] border-[var(--color-hijau-ok)]/20' : s === 'warn' ? 'bg-[var(--color-kuning-warn-bg)] border-[var(--color-kuning-warn)]/20' : 'bg-[var(--color-merah-risiko-bg)] border-[var(--color-merah-risiko)]/20';
                       const textClass = (s: string) => s === 'ok' ? 'text-[var(--color-hijau-ok)]' : s === 'warn' ? 'text-[var(--color-kuning-warn)]' : 'text-[var(--color-merah-risiko)]';
 
                       return (
@@ -661,13 +668,13 @@ export default function DaftarPage() {
                             </div>
 
                             {peringatanRemaja && (
-                              <div className="p-3 badge-pemantauan rounded-xl text-sm">{peringatanRemaja}</div>
+                              <div className="p-3 bg-[var(--color-kuning-warn-bg)] text-[var(--color-kuning-warn)] border border-[var(--color-kuning-warn)]/20 rounded-xl text-sm">{peringatanRemaja}</div>
                             )}
 
                             <div>
                               <p className="text-[var(--color-tinta-lembut)] text-xs uppercase tracking-wide mb-2">Detail Klasifikasi Kesehatan</p>
                               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                                <div className={`p-3 rounded-xl border-2 ${badgeClass(imt.status)}`}>
+                                <div className={`p-3 rounded-xl border ${badgeClass(imt.status)}`}>
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="font-bold text-[var(--color-tinta)]">IMT</span>
                                     <span className={`text-xs font-bold uppercase ${textClass(imt.status)}`}>{imt.label}</span>
@@ -676,7 +683,7 @@ export default function DaftarPage() {
                                   <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">{imt.keterangan}</p>
                                 </div>
 
-                                <div className={`p-3 rounded-xl border-2 ${badgeClass(td.status)}`}>
+                                <div className={`p-3 rounded-xl border ${badgeClass(td.status)}`}>
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="font-bold text-[var(--color-tinta)]">Tekanan Darah</span>
                                     <span className={`text-xs font-bold uppercase ${textClass(td.status)}`}>{td.label}</span>
@@ -685,7 +692,7 @@ export default function DaftarPage() {
                                   <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">{td.keterangan}</p>
                                 </div>
 
-                                <div className={`p-3 rounded-xl border-2 ${badgeClass(gds.status)}`}>
+                                <div className={`p-3 rounded-xl border ${badgeClass(gds.status)}`}>
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="font-bold text-[var(--color-tinta)]">{jenisGD === 'puasa' ? 'GDP' : 'GDS'}</span>
                                     <span className={`text-xs font-bold uppercase ${textClass(gds.status)}`}>{gds.label}</span>
@@ -695,7 +702,7 @@ export default function DaftarPage() {
                                 </div>
 
                                 {kol ? (
-                                  <div className={`p-3 rounded-xl border-2 ${badgeClass(kol.status)}`}>
+                                  <div className={`p-3 rounded-xl border ${badgeClass(kol.status)}`}>
                                     <div className="flex justify-between items-center mb-1">
                                       <span className="font-bold text-[var(--color-tinta)]">Kolesterol</span>
                                       <span className={`text-xs font-bold uppercase ${textClass(kol.status)}`}>{kol.label}</span>
@@ -704,13 +711,13 @@ export default function DaftarPage() {
                                     <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">{kol.keterangan}</p>
                                   </div>
                                 ) : (
-                                  <div className="p-3 rounded-xl border-2 border-[var(--color-garis)] bg-[var(--color-kertas-dalam)]">
+                                  <div className="p-3 rounded-xl border border-[var(--color-garis)] bg-[var(--color-kertas-dalam)]">
                                     <span className="font-bold text-[var(--color-tinta)]">Kolesterol</span>
                                     <p className="text-sm text-[var(--color-tinta-lembut)] mt-1">Tidak Diperiksa</p>
                                   </div>
                                 )}
 
-                                <div className={`p-3 rounded-xl border-2 ${badgeClass(lp.status)}`}>
+                                <div className={`p-3 rounded-xl border ${badgeClass(lp.status)}`}>
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="font-bold text-[var(--color-tinta)]">Lingkar Pinggang</span>
                                     <span className={`text-xs font-bold uppercase ${textClass(lp.status)}`}>{lp.label}</span>
@@ -724,7 +731,7 @@ export default function DaftarPage() {
                             <button
                               onClick={() => handleLihatRiwayat(d.nik)}
                               disabled={riwayatLoading}
-                              className="w-full px-4 py-3 btn-gold text-white font-bold rounded-xl min-h-12"
+                              className="w-full px-4 py-2.5 bg-[var(--color-padi)]/10 border border-[var(--color-padi)]/30 text-[var(--color-padi)] font-semibold text-sm rounded-lg hover:bg-[var(--color-padi)]/20 transition-colors disabled:opacity-50"
                             >
                               📊 Lihat Riwayat Pemeriksaan
                             </button>
@@ -744,7 +751,7 @@ export default function DaftarPage() {
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-3 py-1 glass border border-[var(--color-garis)] rounded-lg disabled:opacity-50 min-h-12"
+              className="px-3 py-1 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] disabled:opacity-50"
             >
               ←
             </button>
@@ -752,7 +759,7 @@ export default function DaftarPage() {
             <button
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1 glass border border-[var(--color-garis)] rounded-lg disabled:opacity-50 min-h-12"
+              className="px-3 py-1 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] disabled:opacity-50"
             >
               →
             </button>

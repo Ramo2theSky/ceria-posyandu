@@ -49,7 +49,7 @@ export default function LupaPasswordPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft-lg"
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{ background: 'linear-gradient(135deg, var(--color-hutan) 0%, #2a6b64 100%)' }}
           >
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,9 +67,9 @@ export default function LupaPasswordPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 shadow-soft-lg border border-[var(--color-garis)]">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
           <div>
-            <label htmlFor="email" className="block text-sm font-bold text-[var(--color-tinta)] mb-2">
+            <label htmlFor="email" className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">
               Email
             </label>
             <input
@@ -77,7 +77,7 @@ export default function LupaPasswordPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-[var(--color-garis)] rounded-xl text-lg bg-white/50"
+              className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
               placeholder="Masukkan email"
               required
               disabled={success}
@@ -85,25 +85,13 @@ export default function LupaPasswordPage() {
           </div>
 
           {error && (
-            <div
-              className="mt-4 p-3 rounded-xl text-sm"
-              style={{
-                background: 'linear-gradient(135deg, #F8E2DF 0%, #f0c8c3 100%)',
-                color: 'var(--color-merah-risiko)',
-              }}
-            >
+            <div className="mt-4 p-3 rounded-xl text-sm bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border border-[var(--color-merah-risiko)]/20">
               {error}
             </div>
           )}
 
           {success && (
-            <div
-              className="mt-4 p-3 rounded-xl text-sm"
-              style={{
-                background: 'linear-gradient(135deg, var(--color-hijau-ok-bg) 0%, #d4eadc 100%)',
-                color: 'var(--color-hijau-ok)',
-              }}
-            >
+            <div className="mt-4 p-3 rounded-xl text-sm bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)] border border-[var(--color-hijau-ok)]/20">
               Link reset kata sandi telah dikirim ke <strong>{email}</strong>. Periksa kotak masuk
               (dan folder spam) Anda, lalu ikuti petunjuk di email.
             </div>
@@ -112,7 +100,7 @@ export default function LupaPasswordPage() {
           <button
             type="submit"
             disabled={loading || success}
-            className="w-full mt-6 btn-primary text-white font-bold py-4 px-6 rounded-xl text-lg disabled:opacity-50"
+            className="w-full mt-6 bg-[var(--color-hutan)] text-white font-semibold text-sm py-3.5 rounded-xl hover:bg-[var(--color-hutan-gelap)] transition-colors disabled:opacity-50"
           >
             {loading ? 'Mengirim...' : success ? 'Email Terkirim' : 'Kirim Link Reset'}
           </button>

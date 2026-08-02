@@ -91,66 +91,7 @@ button:active:not(:disabled) {
   box-shadow: 0 12px 40px rgba(31, 78, 74, 0.12);
 }
 
-/* Glassmorphism (simplified - no blur for performance) */
-.glass {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
 
-/* Status badge gradients */
-.badge-sehat {
-  background: linear-gradient(135deg, #E4F2E9 0%, #c8e6cf 100%);
-  color: var(--color-hijau-ok);
-  border: 1px solid rgba(47, 125, 82, 0.2);
-}
-
-.badge-pemantauan {
-  background: linear-gradient(135deg, #FBEFD9 0%, #f5dfc0 100%);
-  color: var(--color-kuning-warn);
-  border: 1px solid rgba(201, 130, 29, 0.2);
-}
-
-.badge-rujukan {
-  background: linear-gradient(135deg, #F8E2DF 0%, #f0c8c3 100%);
-  color: var(--color-merah-risiko);
-  border: 1px solid rgba(178, 58, 46, 0.2);
-}
-
-/* Header gradient */
-.header-gradient {
-  background: linear-gradient(135deg, var(--color-hutan) 0%, #2a6b64 50%, var(--color-hutan-gelap) 100%);
-}
-
-/* Primary button gradient */
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-hutan) 0%, #2a6b64 100%);
-  box-shadow: 0 4px 15px rgba(31, 78, 74, 0.25);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2a6b64 0%, var(--color-hutan-gelap) 100%);
-  box-shadow: 0 6px 20px rgba(31, 78, 74, 0.35);
-}
-
-/* Gold button gradient */
-.btn-gold {
-  background: linear-gradient(135deg, var(--color-padi) 0%, #c4922e 100%);
-  box-shadow: 0 4px 15px rgba(217, 162, 59, 0.3);
-}
-
-.btn-gold:hover:not(:disabled) {
-  background: linear-gradient(135deg, #c4922e 0%, #b8862a 100%);
-  box-shadow: 0 6px 20px rgba(217, 162, 59, 0.4);
-}
-
-/* Soft shadow */
-.shadow-soft {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-.shadow-soft-lg {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-}
 
 /* Table row hover */
 tr:hover td {

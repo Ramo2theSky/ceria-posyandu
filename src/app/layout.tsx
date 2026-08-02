@@ -11,7 +11,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "CERIA Posyandu - Sistem Pendataan Kesehatan",
-  description: "Sistem pendataan dan skrining kesehatan digital untuk Posyandu Remaja & Lansia Desa Jurangjero",
+  description: "Sistem pendataan dan skrining kesehatan digital untuk Posyandu Remaja & Lansia",
   manifest: "/manifest.json",
 };
 
