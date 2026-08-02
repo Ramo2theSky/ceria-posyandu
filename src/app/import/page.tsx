@@ -109,6 +109,21 @@ export default function ImportPage() {
     reader.readAsText(file);
   };
 
+  const handleDownloadTemplate = () => {
+    const header = 'No,NIK,TTL,L/P,BB,TB,LP,TD,GDS,CL';
+    const example1 = '1,3309123456789012,15/03/1990,L,65,170,80,120/80,95,210';
+    const example2 = '2,3309123456789013,20/07/1985,P,55,158,72,130/85,110,';
+    const example3 = '3,3309123456789014,10/11/2008,L,48,160,65,110/70,88,';
+    const csv = [header, example1, example2, example3].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template-import-ceria.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleImport = async () => {
     setSaving(true);
 
@@ -212,6 +227,13 @@ export default function ImportPage() {
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
             Pilih File CSV
+          </button>
+          <button
+            onClick={handleDownloadTemplate}
+            className="w-full mt-2 py-2.5 bg-white border border-[var(--color-hutan)]/30 hover:border-[var(--color-hutan)] text-[var(--color-hutan)] font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-2"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Download Template CSV
           </button>
         </div>
 
