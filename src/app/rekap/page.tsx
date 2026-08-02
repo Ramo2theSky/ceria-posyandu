@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, type JenisGulaDarah } from '@/lib/klasifikasi';
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
+import { captureAndDownload } from '@/lib/pdf-export';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
@@ -48,6 +49,8 @@ export default function RekapPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [riwayatData, setRiwayatData] = useState<RiwayatPemeriksaan[] | null>(null);
   const [loadingRiwayat, setLoadingRiwayat] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   const handleShowRiwayat = useCallback(async (nik: string) => {
     setLoadingRiwayat(true);
@@ -161,8 +164,16 @@ export default function RekapPage() {
     a.click();
   };
 
-  const handleExportPDF = () => {
-    window.print();
+  const handleExportPDF = async () => {
+    if (!dashboardRef.current || exportingPDF) return;
+    setExportingPDF(true);
+    try {
+      await captureAndDownload(dashboardRef.current, `rekap-desa-${new Date().toISOString().split('T')[0]}`);
+    } catch {
+      alert('Gagal membuat PDF');
+    } finally {
+      setExportingPDF(false);
+    }
   };
 
   const toggleFilterUsia = (val: string) => {
@@ -269,9 +280,13 @@ export default function RekapPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               CSV
             </button>
-            <button onClick={handleExportPDF} className="px-3 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-padi)] hover:text-[var(--color-padi)] transition-colors flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              PDF
+            <button onClick={handleExportPDF} disabled={exportingPDF} className="px-3 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-padi)] hover:text-[var(--color-padi)] transition-colors flex items-center gap-2 disabled:opacity-60">
+              {exportingPDF ? (
+                <span className="w-3.5 h-3.5 border-2 border-[var(--color-tinta)] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              )}
+              {exportingPDF ? 'Membuat PDF...' : 'PDF'}
             </button>
           </div>
         </div>
@@ -341,7 +356,7 @@ export default function RekapPage() {
             )}
           </div>
         )}
-        <main className="space-y-5">
+        <main ref={dashboardRef} className="space-y-5">
           {/* ─── Stat Cards (clickable) ─── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <button onClick={() => setActiveStatus('all')} className="bg-white rounded-xl border border-[var(--color-garis)] p-4 hover:shadow-md transition-shadow text-left">
@@ -505,51 +520,6 @@ export default function RekapPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-
-          {/* ─── Print-Only: Full Data Table ─── */}
-          <div className="print-only hidden">
-            <div className="mt-8 mb-4">
-              <h2 className="text-lg font-bold text-black">Data Lengkap Pemeriksaan</h2>
-              <p className="text-sm text-gray-600">{filtered.length} data · Dicetak: {new Date().toLocaleString('id-ID')}</p>
-            </div>
-            <table className="w-full text-xs border-collapse">
-              <thead>
-                <tr className="border-b-2 border-black">
-                  <th className="text-left py-1 px-1 font-bold">No</th>
-                  <th className="text-left py-1 px-1 font-bold">NIK</th>
-                  <th className="text-left py-1 px-1 font-bold">Usia</th>
-                  <th className="text-left py-1 px-1 font-bold">JK</th>
-                  <th className="text-left py-1 px-1 font-bold">BB/TB</th>
-                  <th className="text-left py-1 px-1 font-bold">LP</th>
-                  <th className="text-left py-1 px-1 font-bold">TD</th>
-                  <th className="text-left py-1 px-1 font-bold">GDS</th>
-                  <th className="text-left py-1 px-1 font-bold">Kolesterol</th>
-                  <th className="text-left py-1 px-1 font-bold">Tanggal</th>
-                  <th className="text-left py-1 px-1 font-bold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((d, i) => {
-                  const usia = hitungUsia(d.tanggal_lahir, new Date());
-                  return (
-                    <tr key={d.id} className="border-b border-gray-300">
-                      <td className="py-1 px-1">{i + 1}</td>
-                      <td className="py-1 px-1 font-mono">{d.nik}</td>
-                      <td className="py-1 px-1">{usia} th</td>
-                      <td className="py-1 px-1">{d.jenis_kelamin}</td>
-                      <td className="py-1 px-1">{d.berat_badan}/{d.tinggi_badan}</td>
-                      <td className="py-1 px-1">{d.lingkar_pinggang}</td>
-                      <td className="py-1 px-1">{d.td_sistol}/{d.td_diastol}</td>
-                      <td className="py-1 px-1">{d.gds} ({d.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS'})</td>
-                      <td className="py-1 px-1">{d.kolesterol_total ?? '-'}</td>
-                      <td className="py-1 px-1">{d.tanggal_periksa}</td>
-                      <td className="py-1 px-1 font-bold">{d.catatan || '-'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
           </div>
         </main>
       </div>
