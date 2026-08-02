@@ -499,7 +499,7 @@ export default function DashboardPage() {
                           item.href === '/input' ? 'text-slate-900 group-hover:text-teal-700' :
                           item.href === '/daftar' ? 'text-slate-900 group-hover:text-sky-700' :
                           item.href === '/rekap' ? 'text-slate-900 group-hover:text-amber-700' :
-                           item.href === '/recycle-bin' ? 'text-slate-900 group-hover:text-slate-700' :
+                           item.href === '/recycle-bin' ? 'text-slate-900 group-hover:text-red-600' :
                           'text-slate-900 group-hover:text-slate-700'
                         }`}>{item.title}</h4>
                         <p className="mt-2 text-base leading-6 text-slate-600">{item.description}</p>
