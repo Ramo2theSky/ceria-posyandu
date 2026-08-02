@@ -189,6 +189,30 @@ export default function DaftarPage() {
     }
   };
 
+  const [printData, setPrintData] = useState<{ nik: string; nama: string; riwayat: RiwayatPemeriksaan[] }[] | null>(null);
+
+  const handleExportSelectedPDF = async () => {
+    if (selectedIds.size === 0) return;
+    const selected = data.filter(d => selectedIds.has(d.id));
+    const uniqueNiks = [...new Set(selected.map(d => d.nik))];
+
+    const results: { nik: string; nama: string; riwayat: RiwayatPemeriksaan[] }[] = [];
+    for (const nik of uniqueNiks) {
+      const result = await cekNIK(nik);
+      if (result.riwayat.length > 0) {
+        results.push({ nik, nama: `NIK ${nik}`, riwayat: result.riwayat });
+      }
+    }
+
+    if (results.length === 0) {
+      alert('Tidak ada data riwayat untuk pasien terpilih.');
+      return;
+    }
+
+    setPrintData(results);
+    setTimeout(() => window.print(), 300);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -497,12 +521,21 @@ export default function DaftarPage() {
           <p className="text-sm text-[var(--color-tinta-lembut)]">{sorted.length} data ditemukan</p>
           <div className="flex items-center gap-3">
             {selectedIds.size > 0 && (
-              <button
-                onClick={handleBulkDelete}
-                className="px-4 py-2 bg-[var(--color-merah-risiko)]/90 text-white font-semibold text-sm rounded-lg"
-              >
-                🗑 Hapus {selectedIds.size} Data
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleExportSelectedPDF}
+                  className="px-4 py-2 bg-[var(--color-hutan)] text-white font-semibold text-sm rounded-lg flex items-center gap-1.5"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  PDF ({selectedIds.size})
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-4 py-2 bg-[var(--color-merah-risiko)]/90 text-white font-semibold text-sm rounded-lg"
+                >
+                  Hapus {selectedIds.size} Data
+                </button>
+              </div>
             )}
             <select
               value={perPage}
@@ -791,6 +824,121 @@ export default function DaftarPage() {
             <RiwayatModal riwayat={riwayatData} onClose={() => { setRiwayatOpen(false); setRiwayatData(null); }} />
           )}
         </>
+      )}
+
+      {/* ─── Print-Only: Selected Export PDF ─── */}
+      {printData && printData.length > 0 && (
+        <div className="print-only hidden">
+          {printData.map((patient, pIdx) => {
+            const r = patient.riwayat;
+            const latest = r[0];
+            const usia = latest ? hitungUsia(latest.tanggal_lahir, new Date(latest.tanggal_periksa)) : 0;
+            const imtValues = r.map(d => d.berat_badan / Math.pow(d.tinggi_badan / 100, 2));
+            const systolicValues = r.map(d => d.td_sistol);
+            const diastolicValues = r.map(d => d.td_diastol);
+            const gdsValues = r.map(d => d.gds);
+            const dates = r.map(d => new Date(d.tanggal_periksa).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }));
+            const maxVal = (arr: number[]) => Math.max(...arr, 1);
+
+            function MiniBarChart({ values, labels, color, max }: { values: number[]; labels: string[]; color: string; max: number }) {
+              return (
+                <div className="flex items-end gap-1 h-20">
+                  {values.map((v, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                      <span className="text-[8px] font-bold">{v.toFixed(0)}</span>
+                      <div className="w-full rounded-t" style={{ height: `${(v / max) * 50}px`, backgroundColor: color, minHeight: '2px' }} />
+                      <span className="text-[7px] text-gray-500">{labels[i]}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
+            return (
+              <div key={patient.nik} className={pIdx > 0 ? 'page-break-before' : ''} style={{ pageBreakBefore: pIdx > 0 ? 'always' : undefined }}>
+                <div className="mb-4 border-b-2 border-black pb-2">
+                  <h1 className="text-lg font-bold">Rekap Kesehatan - {patient.nama}</h1>
+                  <p className="text-xs text-gray-600">NIK: {patient.nik} · Usia: {usia} th · {latest?.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} · Total pemeriksaan: {r.length}</p>
+                  <p className="text-xs text-gray-500">Dicetak: {new Date().toLocaleString('id-ID')}</p>
+                </div>
+
+                {/* Summary cards */}
+                {latest && (
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div className="border rounded p-2 text-center">
+                      <p className="text-[9px] text-gray-500">BB/TB</p>
+                      <p className="text-xs font-bold">{latest.berat_badan}/{latest.tinggi_badan}</p>
+                    </div>
+                    <div className="border rounded p-2 text-center">
+                      <p className="text-[9px] text-gray-500">IMT</p>
+                      <p className="text-xs font-bold">{(latest.berat_badan / Math.pow(latest.tinggi_badan / 100, 2)).toFixed(1)}</p>
+                    </div>
+                    <div className="border rounded p-2 text-center">
+                      <p className="text-[9px] text-gray-500">TD</p>
+                      <p className="text-xs font-bold">{latest.td_sistol}/{latest.td_diastol}</p>
+                    </div>
+                    <div className="border rounded p-2 text-center">
+                      <p className="text-[9px] text-gray-500">{latest.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS'}</p>
+                      <p className="text-xs font-bold">{latest.gds}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Charts */}
+                {r.length > 1 && (
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="border rounded p-2">
+                      <p className="text-[9px] font-bold mb-1">IMT</p>
+                      <MiniBarChart values={imtValues} labels={dates} color="#1F4E4A" max={Math.max(...imtValues)} />
+                    </div>
+                    <div className="border rounded p-2">
+                      <p className="text-[9px] font-bold mb-1">Tekanan Darah</p>
+                      <div className="flex items-end gap-1 h-20">
+                        {systolicValues.map((v, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                            <span className="text-[7px]">{v}/{diastolicValues[i]}</span>
+                            <div className="w-full rounded-t" style={{ height: `${(v / maxVal(systolicValues)) * 50}px`, backgroundColor: '#E87C6B', minHeight: '2px' }} />
+                            <span className="text-[7px] text-gray-500">{dates[i]}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="border rounded p-2">
+                      <p className="text-[9px] font-bold mb-1">{latest?.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS'}</p>
+                      <MiniBarChart values={gdsValues} labels={dates} color="#4A9DAA" max={Math.max(...gdsValues)} />
+                    </div>
+                  </div>
+                )}
+
+                {/* History table */}
+                <table className="w-full text-[9px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-400">
+                      <th className="text-left py-0.5 px-1 font-bold">Tanggal</th>
+                      <th className="text-left py-0.5 px-1 font-bold">BB/TB</th>
+                      <th className="text-left py-0.5 px-1 font-bold">IMT</th>
+                      <th className="text-left py-0.5 px-1 font-bold">TD</th>
+                      <th className="text-left py-0.5 px-1 font-bold">GDS</th>
+                      <th className="text-left py-0.5 px-1 font-bold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {r.map((d) => (
+                      <tr key={d.id} className="border-b border-gray-200">
+                        <td className="py-0.5 px-1">{d.tanggal_periksa}</td>
+                        <td className="py-0.5 px-1">{d.berat_badan}/{d.tinggi_badan}</td>
+                        <td className="py-0.5 px-1">{(d.berat_badan / Math.pow(d.tinggi_badan / 100, 2)).toFixed(1)}</td>
+                        <td className="py-0.5 px-1">{d.td_sistol}/{d.td_diastol}</td>
+                        <td className="py-0.5 px-1">{d.gds}</td>
+                        <td className="py-0.5 px-1 font-bold">{d.catatan}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
     </AppShell>

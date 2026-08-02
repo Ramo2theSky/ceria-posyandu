@@ -63,8 +63,6 @@ export default function InputPage() {
   const [nikCheck, setNikCheck] = useState<CekNIKResult | null>(null);
   const [checkingNIK, setCheckingNIK] = useState(false);
   const [showRiwayat, setShowRiwayat] = useState(false);
-  const [showGulaDarahPopup, setShowGulaDarahPopup] = useState(false);
-  const [pendingGDS, setPendingGDS] = useState<number | null>(null);
   const nikTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const usia = identitas.tanggalLahir ? hitungUsia(identitas.tanggalLahir, new Date()) : 0;
@@ -479,18 +477,50 @@ export default function InputPage() {
                 value={pengukuran.gds}
                 onChange={(v) => {
                   const newGDS = v;
-                  setPengukuran({ ...pengukuran, gds: newGDS, jenisGulaDarah: '' });
                   const gdsNum = parseInt(newGDS);
                   if (!isNaN(gdsNum) && butuhKlasifikasiGulaDarah(gdsNum)) {
-                    setPendingGDS(gdsNum);
-                    setShowGulaDarahPopup(true);
+                    setPengukuran({ ...pengukuran, gds: newGDS, jenisGulaDarah: '' });
+                  } else {
+                    setPengukuran({ ...pengukuran, gds: newGDS, jenisGulaDarah: 'sewaktu' });
                   }
                 }}
                 error={errors.gds}
                 inputMode="numeric"
               />
-              {pengukuran.gds && pengukuran.jenisGulaDarah && (
-                <p className="text-xs text-[var(--color-hutan)] font-semibold -mt-2 ml-1">
+              {/* Inline GDP/GDS toggle — only when value in ambiguous range (110-200) */}
+              {pengukuran.gds && butuhKlasifikasiGulaDarah(parseInt(pengukuran.gds)) && (
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPengukuran({ ...pengukuran, jenisGulaDarah: 'puasa' })}
+                    className={`flex-1 py-2.5 px-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                      pengukuran.jenisGulaDarah === 'puasa'
+                        ? 'border-[var(--color-hutan)] bg-[var(--color-hutan)] text-white'
+                        : 'border-[var(--color-garis)] bg-white text-[var(--color-tinta)] hover:border-[var(--color-hutan)]'
+                    }`}
+                  >
+                    Puasa (GDP)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPengukuran({ ...pengukuran, jenisGulaDarah: 'sewaktu' })}
+                    className={`flex-1 py-2.5 px-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                      pengukuran.jenisGulaDarah === 'sewaktu'
+                        ? 'border-[var(--color-hutan)] bg-[var(--color-hutan)] text-white'
+                        : 'border-[var(--color-garis)] bg-white text-[var(--color-tinta)] hover:border-[var(--color-hutan)]'
+                    }`}
+                  >
+                    Sewaktu (GDS)
+                  </button>
+                </div>
+              )}
+              {pengukuran.gds && pengukuran.jenisGulaDarah && !butuhKlasifikasiGulaDarah(parseInt(pengukuran.gds)) && (
+                <p className="text-xs text-[var(--color-hutan)] font-semibold mt-1 ml-1">
+                  🍽️ GDS (Sewaktu)
+                </p>
+              )}
+              {pengukuran.gds && pengukuran.jenisGulaDarah && butuhKlasifikasiGulaDarah(parseInt(pengukuran.gds)) && (
+                <p className="text-xs text-[var(--color-hutan)] font-semibold mt-1 ml-1">
                   {pengukuran.jenisGulaDarah === 'puasa' ? '🔬 GDP (Puasa)' : '🍽️ GDS (Sewaktu)'}
                 </p>
               )}
@@ -557,58 +587,6 @@ export default function InputPage() {
         <RiwayatModal riwayat={nikCheck.riwayat} onClose={() => setShowRiwayat(false)} />
       )}
 
-      {/* GDP/GDS Popup */}
-      {showGulaDarahPopup && pendingGDS !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setShowGulaDarahPopup(false); setPendingGDS(null); }}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[var(--color-kuning-warn-bg)] flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-padi)" strokeWidth="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-              </div>
-              <h3 className="font-bold text-lg text-[var(--color-tinta)]">Kadar Gula Darah: {pendingGDS} mg/dL</h3>
-              <p className="text-sm text-[var(--color-tinta-lembut)] mt-2">
-                Hasil klasifikasi berbeda tergantung kondisi puasa atau tidak.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => {
-                  setPengukuran({ ...pengukuran, jenisGulaDarah: 'puasa' });
-                  setShowGulaDarahPopup(false);
-                  setPendingGDS(null);
-                }}
-                className="w-full py-4 px-4 rounded-xl border-2 border-[var(--color-garis)] hover:border-[var(--color-hutan)] hover:bg-[var(--color-hutan)]/5 transition-all text-left"
-              >
-                <p className="font-semibold text-[var(--color-tinta)]">🔬 Puasa (GDP)</p>
-                <p className="text-xs text-[var(--color-tinta-lembut)] mt-0.5">
-                  {pendingGDS < 110 ? 'Normal' : pendingGDS <= 125 ? 'Pre-diabetes' : 'Diabetes'}
-                </p>
-              </button>
-
-              <button
-                onClick={() => {
-                  setPengukuran({ ...pengukuran, jenisGulaDarah: 'sewaktu' });
-                  setShowGulaDarahPopup(false);
-                  setPendingGDS(null);
-                }}
-                className="w-full py-4 px-4 rounded-xl border-2 border-[var(--color-garis)] hover:border-[var(--color-hutan)] hover:bg-[var(--color-hutan)]/5 transition-all text-left"
-              >
-                <p className="font-semibold text-[var(--color-tinta)]">🍽️ Sewaktu (GDS)</p>
-                <p className="text-xs text-[var(--color-tinta-lembut)] mt-0.5">
-                  {pendingGDS < 140 ? 'Normal' : pendingGDS <= 199 ? 'Pre-diabetes' : 'Diabetes'}
-                </p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
     </AppShell>
   );
