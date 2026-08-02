@@ -199,9 +199,18 @@ input:focus, button:focus, textarea:focus, select:focus {
     display: block !important;
   }
 
-  /* Page break before full data table */
-  .print-only table {
+  /* Page break before rekap's full data table only */
+  .print-only > table {
     page-break-before: always;
+  }
+
+  /* Per-person page break (daftar export) */
+  .print-person {
+    page-break-before: always;
+  }
+  .print-person:first-child,
+  .print-person-first {
+    page-break-before: auto;
   }
 
   /* Avoid page breaks inside rows */

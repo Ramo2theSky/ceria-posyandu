@@ -855,7 +855,7 @@ export default function DaftarPage() {
             }
 
             return (
-              <div key={patient.nik} className={pIdx > 0 ? 'page-break-before' : ''} style={{ pageBreakBefore: pIdx > 0 ? 'always' : undefined }}>
+              <div key={patient.nik} className={`print-person${pIdx === 0 ? ' print-person-first' : ''}`}>
                 <div className="mb-4 border-b-2 border-black pb-2">
                   <h1 className="text-lg font-bold">Rekap Kesehatan - {patient.nama}</h1>
                   <p className="text-xs text-gray-600">NIK: {patient.nik} · Usia: {usia} th · {latest?.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} · Total pemeriksaan: {r.length}</p>
