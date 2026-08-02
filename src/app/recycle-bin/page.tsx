@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
 import { maskNIK } from '@/lib/formatters';
+import AppShell from '@/components/AppShell';
 
 interface DeletedRecord {
   id: string;
@@ -139,24 +140,18 @@ export default function RecycleBinPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-kertas)] flex items-center justify-center">
-        <p className="text-[var(--color-tinta-lembut)]">Memuat data...</p>
-      </div>
+      <AppShell>
+        <div className="bg-[var(--color-kertas)] min-h-[calc(100vh-52px)] md:min-h-screen flex items-center justify-center">
+          <p className="text-[var(--color-tinta-lembut)]">Memuat data...</p>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-kertas)]">
-      <div className="flex items-center justify-between px-6 py-4">
-        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
-          <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
-        </button>
-        <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)] hover:text-[var(--color-tinta)]">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-        </button>
-      </div>
-
-      <main className="max-w-4xl mx-auto px-4 pb-20">
+    <AppShell>
+      <div className="bg-[var(--color-kertas)] min-h-[calc(100vh-52px)] md:min-h-screen">
+        <main className="max-w-4xl mx-auto px-4 py-6 pb-20">
         <div className="mb-6">
           <h1 className="text-xl font-bold text-[var(--color-tinta)]">Recycle Bin</h1>
           <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">{data.length} data terhapus</p>
@@ -289,7 +284,8 @@ export default function RecycleBinPage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </AppShell>
   );
 }

@@ -7,6 +7,7 @@ import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
 import RiwayatModal from '@/components/RiwayatModal';
+import AppShell from '@/components/AppShell';
 
 interface Pemeriksaan {
   id: string;
@@ -174,9 +175,11 @@ export default function RekapPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-[var(--color-tinta-lembut)]">Memuat data...</p>
-      </div>
+      <AppShell>
+        <div className="min-h-[calc(100vh-52px)] md:min-h-screen flex items-center justify-center">
+          <p className="text-[var(--color-tinta-lembut)]">Memuat data...</p>
+        </div>
+      </AppShell>
     );
   }
 
@@ -186,14 +189,12 @@ export default function RekapPage() {
     const statusLabel = STATUS_LABELS[activeStatus] || activeStatus;
 
     return (
-      <div className="min-h-screen bg-[var(--color-kertas)]">
-        <div className="flex items-center justify-between px-6 py-4">
+      <AppShell>
+      <div className="min-h-[calc(100vh-52px)] md:min-h-screen bg-[var(--color-kertas)]">
+        <div className="px-4 py-4">
           <button onClick={() => { setActiveStatus(null); setExpandedId(null); setSearchQuery(''); }} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             <span className="font-semibold">Kembali ke Rekap</span>
-          </button>
-          <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-white">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
           </button>
         </div>
 
@@ -244,88 +245,92 @@ export default function RekapPage() {
           </div>
         )}
       </div>
+      </AppShell>
     );
   }
 
   /* ─── MAIN REKAP VIEW ─── */
   return (
-    <div className="min-h-screen bg-[var(--color-kertas)]">
-      <div className="flex items-center justify-between px-6 py-4">
-        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
-          <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
-        </button>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden p-2 rounded-lg hover:bg-white text-[var(--color-tinta-lembut)]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
-          </button>
-          <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-white">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-          </button>
+    <AppShell>
+    <div className="min-h-[calc(100vh-52px)] md:min-h-screen bg-[var(--color-kertas)]">
+      <div className="px-4 py-6 pb-20 max-w-[1400px] mx-auto">
+        {/* ─── Filter Toggle (mobile) ─── */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-[var(--color-tinta)]">Rekap Desa</h1>
+            <p className="text-xs text-[var(--color-tinta-lembut)]">Dashboard overview data kesehatan warga</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-medium text-[var(--color-tinta)] hover:border-[var(--color-hutan)] transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+              Filter
+            </button>
+            <button onClick={handleExportCSV} className="px-3 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-hutan)] hover:text-[var(--color-hutan)] transition-colors flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              CSV
+            </button>
+            <button onClick={handleExportPDF} className="px-3 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-padi)] hover:text-[var(--color-padi)] transition-colors flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              PDF
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="px-4 pb-20 flex gap-5 max-w-[1400px] mx-auto">
-        {/* ─── Mobile Filter Backdrop ─── */}
+        {/* ─── Filter Panel (collapsible) ─── */}
         {showFilters && (
-          <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setShowFilters(false)} />
-        )}
-
-        {/* ─── Sidebar Filter ─── */}
-        <aside className={`
-          fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-[var(--color-kertas)] p-4 overflow-y-auto transition-transform lg:relative lg:inset-auto lg:w-64 lg:z-auto lg:transform-none lg:block lg:p-0 lg:translate-x-0
-          ${showFilters ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}>
-          <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5 space-y-5">
+          <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5 mb-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-hutan)" strokeWidth="2"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
                 <h3 className="font-bold text-sm text-[var(--color-tinta)]">Filter</h3>
               </div>
-              <button onClick={() => setShowFilters(false)} className="lg:hidden w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)]">
+              <button onClick={() => setShowFilters(false)} className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)]">
                 <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
               </button>
             </div>
 
-            <div>
-              <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Kelompok Usia</p>
-              <div className="space-y-2">
-                {[
-                  { val: 'remaja', label: 'Remaja (< 18 th)', count: data.filter(d => hitungUsia(d.tanggal_lahir, new Date()) < 18).length },
-                  { val: 'dewasa', label: 'Dewasa (18-59 th)', count: data.filter(d => { const u = hitungUsia(d.tanggal_lahir, new Date()); return u >= 18 && u < 60; }).length },
-                  { val: 'lansia', label: 'Lansia (≥ 60 th)', count: data.filter(d => hitungUsia(d.tanggal_lahir, new Date()) >= 60).length },
-                ].map((item) => (
-                  <label key={item.val} className="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" checked={filterUsia.includes(item.val)} onChange={() => toggleFilterUsia(item.val)} className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]" />
-                    <span className="text-sm text-[var(--color-tinta)] group-hover:text-[var(--color-hutan)]">{item.label}</span>
-                    <span className="text-xs text-[var(--color-tinta-lembut)] ml-auto">{item.count}</span>
-                  </label>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Kelompok Usia</p>
+                <div className="space-y-2">
+                  {[
+                    { val: 'remaja', label: 'Remaja (< 18 th)', count: data.filter(d => hitungUsia(d.tanggal_lahir, new Date()) < 18).length },
+                    { val: 'dewasa', label: 'Dewasa (18-59 th)', count: data.filter(d => { const u = hitungUsia(d.tanggal_lahir, new Date()); return u >= 18 && u < 60; }).length },
+                    { val: 'lansia', label: 'Lansia (≥ 60 th)', count: data.filter(d => hitungUsia(d.tanggal_lahir, new Date()) >= 60).length },
+                  ].map((item) => (
+                    <label key={item.val} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" checked={filterUsia.includes(item.val)} onChange={() => toggleFilterUsia(item.val)} className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]" />
+                      <span className="text-sm text-[var(--color-tinta)] group-hover:text-[var(--color-hutan)]">{item.label}</span>
+                      <span className="text-xs text-[var(--color-tinta-lembut)] ml-auto">{item.count}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Status Kesehatan</p>
-              <div className="space-y-2">
-                {[
-                  { val: 'SEHAT', label: 'Sehat', count: data.filter(d => d.catatan === 'SEHAT').length, color: 'bg-[var(--color-hijau-ok)]' },
-                  { val: 'PERLU PEMANTAUAN', label: 'Perlu Pemantauan', count: data.filter(d => d.catatan === 'PERLU PEMANTAUAN').length, color: 'bg-[var(--color-kuning-warn)]' },
-                  { val: 'PERLU RUJUKAN', label: 'Perlu Rujukan', count: data.filter(d => d.catatan === 'PERLU RUJUKAN').length, color: 'bg-[var(--color-merah-risiko)]' },
-                ].map((item) => (
-                  <label key={item.val} className="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" checked={filterStatus.includes(item.val)} onChange={() => toggleFilterStatus(item.val)} className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]" />
-                    <span className={`w-2 h-2 rounded-full ${item.color}`} />
-                    <span className="text-sm text-[var(--color-tinta)] group-hover:text-[var(--color-hutan)]">{item.label}</span>
-                    <span className="text-xs text-[var(--color-tinta-lembut)] ml-auto">{item.count}</span>
-                  </label>
-                ))}
+              <div>
+                <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Status Kesehatan</p>
+                <div className="space-y-2">
+                  {[
+                    { val: 'SEHAT', label: 'Sehat', count: data.filter(d => d.catatan === 'SEHAT').length, color: 'bg-[var(--color-hijau-ok)]' },
+                    { val: 'PERLU PEMANTAUAN', label: 'Perlu Pemantauan', count: data.filter(d => d.catatan === 'PERLU PEMANTAUAN').length, color: 'bg-[var(--color-kuning-warn)]' },
+                    { val: 'PERLU RUJUKAN', label: 'Perlu Rujukan', count: data.filter(d => d.catatan === 'PERLU RUJUKAN').length, color: 'bg-[var(--color-merah-risiko)]' },
+                  ].map((item) => (
+                    <label key={item.val} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" checked={filterStatus.includes(item.val)} onChange={() => toggleFilterStatus(item.val)} className="w-4 h-4 rounded border-[var(--color-garis)] text-[var(--color-hutan)] focus:ring-[var(--color-hutan)]" />
+                      <span className={`w-2 h-2 rounded-full ${item.color}`} />
+                      <span className="text-sm text-[var(--color-tinta)] group-hover:text-[var(--color-hutan)]">{item.label}</span>
+                      <span className="text-xs text-[var(--color-tinta-lembut)] ml-auto">{item.count}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Tanggal Periksa</p>
-              <div className="space-y-2">
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]" />
-                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]" />
+              <div>
+                <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Tanggal Periksa</p>
+                <div className="space-y-2">
+                  <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]" />
+                  <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)]" />
+                </div>
               </div>
             </div>
 
@@ -335,25 +340,8 @@ export default function RekapPage() {
               </button>
             )}
           </div>
-        </aside>
-        <main className="flex-1 min-w-0 space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-[var(--color-tinta)]">Rekap Desa</h1>
-              <p className="text-xs text-[var(--color-tinta-lembut)]">Dashboard overview data kesehatan warga</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={handleExportCSV} className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-hutan)] hover:text-[var(--color-hutan)] transition-colors flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                Export CSV
-              </button>
-              <button onClick={handleExportPDF} className="px-4 py-2 rounded-lg bg-white border border-[var(--color-garis)] text-sm font-semibold text-[var(--color-tinta)] hover:border-[var(--color-padi)] hover:text-[var(--color-padi)] transition-colors flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                Export PDF
-              </button>
-            </div>
-          </div>
-
+        )}
+        <main className="space-y-5">
           {/* ─── Stat Cards (clickable) ─── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <button onClick={() => setActiveStatus('all')} className="bg-white rounded-xl border border-[var(--color-garis)] p-4 hover:shadow-md transition-shadow text-left">
@@ -566,6 +554,7 @@ export default function RekapPage() {
         </main>
       </div>
     </div>
+    </AppShell>
   );
 }
 

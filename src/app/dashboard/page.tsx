@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import SpotlightCard from '@/components/ReactBits/SpotlightCard';
+import AppShell from '@/components/AppShell';
 
 type DashboardUser = {
   email?: string | null;
@@ -289,102 +290,8 @@ export default function DashboardPage() {
     .toUpperCase();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 md:flex">
-      <aside className="hidden md:flex md:w-80 md:flex-col md:border-r md:border-slate-200 md:bg-white md:px-6 md:py-6">
-        <div className="flex items-center gap-3 px-2">
-          <Link href="/dashboard" className="shrink-0">
-            <img src="/ceria-logo.png" alt="CERIA" className="h-10" />
-          </Link>
-          <div>
-            <p className="text-sm text-slate-500">Sistem Kesehatan Desa</p>
-          </div>
-        </div>
-
-        <nav className="mt-8 space-y-2">
-          <div className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Menu utama</div>
-          <Link href="/dashboard" className="flex min-h-12 items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-700 shadow-sm">
-            <DashboardIcon className="h-5 w-5" />
-            <span>Overview</span>
-          </Link>
-          <Link href="/input" className="flex min-h-12 items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 transition hover:border-teal-200 hover:bg-slate-50">
-            <PlusIcon className="h-5 w-5" />
-            <span>Input Data Warga</span>
-          </Link>
-          <Link href="/daftar" className="flex min-h-12 items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 transition hover:border-teal-200 hover:bg-slate-50">
-            <UsersIcon className="h-5 w-5" />
-            <span>Daftar Warga</span>
-          </Link>
-          <Link href="/rekap" className="flex min-h-12 items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 transition hover:border-teal-200 hover:bg-slate-50">
-            <ChartIcon className="h-5 w-5" />
-            <span>Rekap Desa</span>
-          </Link>
-          <Link href="/import" className="flex min-h-12 items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 transition hover:border-teal-200 hover:bg-slate-50">
-            <FileIcon className="h-5 w-5" />
-            <span>Impor CSV</span>
-          </Link>
-        </nav>
-
-        {/* SWARYA Branding */}
-        <div className="mt-4 flex items-center gap-2 px-2">
-          <img src="/swarya-logo.png" alt="SWARYA" className="h-5 w-auto" />
-          <span className="text-[10px] text-slate-400 font-semibold">© 2026 KKN PPM UGM</span>
-        </div>
-
-        <div className="mt-auto rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-bold text-slate-600">
-              {initials}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
-              <p className="text-xs text-slate-500">Administrator</p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-          >
-            <LogOutIcon className="h-4 w-4" />
-            Keluar Aplikasi
-          </button>
-        </div>
-      </aside>
-
-      <div className="flex-1 min-w-0">
-        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 md:px-8">
-            <div className="flex items-center gap-3 md:hidden">
-              <Link href="/dashboard" className="shrink-0">
-                <img src="/ceria-logo.png" alt="CERIA" className="h-8" />
-              </Link>
-              <div>
-                <p className="text-sm text-slate-500">Sistem Kesehatan Desa</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="hidden rounded-full border border-teal-100 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 md:inline-flex">
-                Sistem aktif & terhubung
-              </div>
-              <button
-                onClick={toggleLog}
-                className="relative flex min-h-12 min-w-12 items-center justify-center rounded-2xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
-              >
-                <BellIcon className="h-5 w-5" />
-                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-teal-600" />
-              </button>
-              <button
-                onClick={handleLogout}
-                className="hidden min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 md:inline-flex"
-              >
-                <LogOutIcon className="h-4 w-4" />
-                Keluar
-              </button>
-            </div>
-          </div>
-        </header>
-
+    <AppShell>
+    <div className="min-h-[calc(100vh-52px)] md:min-h-screen">
         {showLog && (
           <div className="border-b border-slate-200 bg-white px-4 py-4 md:px-8">
             <div className="mx-auto max-w-7xl">
@@ -522,8 +429,8 @@ export default function DashboardPage() {
             </div>
           </section>
         </main>
-      </div>
     </div>
+    </AppShell>
   );
 }
 

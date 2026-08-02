@@ -9,6 +9,7 @@ import { logActivity } from '@/lib/activity-log';
 import { maskNIK } from '@/lib/formatters';
 import { cekNIK, RiwayatPemeriksaan } from '@/lib/riwayat';
 import RiwayatModal from '@/components/RiwayatModal';
+import AppShell from '@/components/AppShell';
 
 interface Pemeriksaan {
   id: string;
@@ -403,17 +404,9 @@ export default function DaftarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-kertas)]">
-      <div className="flex items-center justify-between px-6 py-4">
-        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
-          <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
-        </button>
-        <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)] hover:text-[var(--color-tinta)]">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-        </button>
-      </div>
-
-      <main className="px-4 pb-20 max-w-5xl mx-auto">
+    <AppShell>
+      <div className="bg-[var(--color-kertas)] min-h-[calc(100vh-52px)] md:min-h-screen">
+      <main className="px-4 py-6 pb-20 max-w-5xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl font-bold text-[var(--color-tinta)]">Daftar Warga</h1>
           <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">Kelola data warga yang sudah diperiksa</p>
@@ -800,5 +793,6 @@ export default function DaftarPage() {
         </>
       )}
     </div>
+    </AppShell>
   );
 }
