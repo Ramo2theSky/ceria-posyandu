@@ -65,19 +65,28 @@ export default function RecycleBinPage() {
     if (!confirm('Pulihkan data ini ke daftar utama?')) return;
     setProcessingId(id);
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('pemeriksaan')
       .update({ dihapus_pada: null })
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
 
-    if (!error) {
-      const record = data.find(d => d.id === id);
-      if (record) logActivity('restore', record.nik, `Data warga ${record.nik} dipulihkan dari recycle bin`);
-      setData(data.filter(d => d.id !== id));
-    } else {
+    if (error) {
       console.error('Restore error:', error);
       alert(`Gagal memulihkan data: ${error.message}`);
+      setProcessingId(null);
+      return;
     }
+
+    if (!updated || updated.length === 0) {
+      alert('Gagal memulihkan data: Tidak ada baris yang diperbarui. Kemungkinan akses ditolak oleh server.');
+      setProcessingId(null);
+      return;
+    }
+
+    const record = data.find(d => d.id === id);
+    if (record) logActivity('restore', record.nik, `Data warga ${record.nik} dipulihkan dari recycle bin`);
+    setData(data.filter(d => d.id !== id));
     setProcessingId(null);
   }
 
@@ -85,18 +94,27 @@ export default function RecycleBinPage() {
     if (!confirm('HAPUS PERMANEN? Data tidak bisa dikembalikan!')) return;
     setProcessingId(id);
 
-    const { error } = await supabase
+    const { data: deleted, error } = await supabase
       .from('pemeriksaan')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
 
-    if (!error) {
-      const record = data.find(d => d.id === id);
-      if (record) logActivity('delete', record.nik, `Data warga ${record.nik} dihapus permanen dari recycle bin`);
-      setData(data.filter(d => d.id !== id));
-    } else {
-      alert('Gagal menghapus data');
+    if (error) {
+      alert(`Gagal menghapus data: ${error.message}`);
+      setProcessingId(null);
+      return;
     }
+
+    if (!deleted || deleted.length === 0) {
+      alert('Gagal menghapus data: Tidak ada baris yang dihapus. Kemungkinan akses ditolak.');
+      setProcessingId(null);
+      return;
+    }
+
+    const record = data.find(d => d.id === id);
+    if (record) logActivity('delete', record.nik, `Data warga ${record.nik} dihapus permanen dari recycle bin`);
+    setData(data.filter(d => d.id !== id));
     setProcessingId(null);
   }
 
