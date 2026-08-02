@@ -209,7 +209,7 @@ export default function InputPage() {
       <div className="bg-[var(--color-kertas)] min-h-[calc(100vh-52px)] md:min-h-screen">
 
       {/* Stepper */}
-      <div className="flex items-center justify-center px-8 pb-6">
+      <div className="flex items-center justify-center px-8 pt-4 pb-6">
         <div className="flex items-center gap-0 w-full max-w-xs">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center flex-1 last:flex-none">
