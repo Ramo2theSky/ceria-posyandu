@@ -31,6 +31,7 @@ CREATE POLICY "authenticated_delete" ON public.pemeriksaan
 
 -- Drop all existing INSERT policies and recreate
 DROP POLICY IF EXISTS "kader_input" ON public.pemeriksaan;
+DROP POLICY IF EXISTS "authenticated_insert" ON public.pemeriksaan;
 
 CREATE POLICY "authenticated_insert" ON public.pemeriksaan
     FOR INSERT WITH CHECK (
