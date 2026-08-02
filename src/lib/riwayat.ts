@@ -6,6 +6,8 @@ export interface RiwayatPemeriksaan {
   nik: string;
   tanggal_lahir: string;
   jenis_kelamin: 'L' | 'P';
+  no_telepon: string | null;
+  alamat: string | null;
   berat_badan: number;
   tinggi_badan: number;
   lingkar_pinggang: number;

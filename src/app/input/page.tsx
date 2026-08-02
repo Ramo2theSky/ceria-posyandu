@@ -91,6 +91,8 @@ export default function InputPage() {
             ...prev,
             tanggalLahir: prev.tanggalLahir || td.tanggal_lahir,
             jenisKelamin: prev.jenisKelamin || td.jenis_kelamin,
+            noHP: prev.noHP || td.no_telepon || '',
+            alamat: prev.alamat || td.alamat || '',
           }));
         }
       } catch {
@@ -193,6 +195,19 @@ export default function InputPage() {
 
       if (error) throw error;
 
+      // Backfill: if this NIK now has phone/address, update all previous null records
+      if (identitas.noHP || identitas.alamat) {
+        const updates: Record<string, string> = {};
+        if (identitas.noHP) updates.no_telepon = identitas.noHP;
+        if (identitas.alamat) updates.alamat = identitas.alamat;
+        await supabase
+          .from('pemeriksaan')
+          .update(updates)
+          .eq('nik', identitas.nik)
+          .is('dihapus_pada', null)
+          .is(Object.keys(updates)[0], null);
+      }
+
       logActivity('insert', identitas.nik, `Data warga ${identitas.nik} berhasil disimpan`);
       alert('Data tersimpan!');
       router.push('/dashboard');
@@ -209,7 +224,7 @@ export default function InputPage() {
       <div className="bg-[var(--color-kertas)] min-h-[calc(100vh-52px)] md:min-h-screen">
 
       {/* Stepper */}
-      <div className="flex items-center justify-center px-8 pt-4 pb-6">
+      <div className="flex items-center justify-center px-8 pt-6 pb-6">
         <div className="flex items-center gap-0 w-full max-w-xs">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center flex-1 last:flex-none">
