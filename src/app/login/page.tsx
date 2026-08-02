@@ -47,7 +47,7 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        setError('Email atau kata sandi salah. Hubungi admin posyandu untuk bantuan.');
+        setError('Email atau kata sandi salah. Hubungi admin puskesmas untuk bantuan.');
         return;
       }
 
@@ -170,7 +170,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-[var(--color-tinta-lembut)] mt-6 opacity-70">
-          Hubungi admin posyandu untuk mendapatkan akun
+          Hubungi admin puskesmas untuk mendapatkan akun
         </p>
       </div>
     </div>

@@ -1,25 +1,25 @@
 # UI/UX Brief
-## CERIA — Sistem Pendataan & Skrining Kesehatan Digital Posyandu
-### Desa Jurangjero, Karanganom, Klaten
+## CERIA — Sistem Pendataan & Skrining Kesehatan Digital Puskesmas
+### Puskesmas Karanganom, Karanganom, Klaten
 
 | | |
 |---|---|
 | **Versi** | 1.0 |
 | **Berdasarkan** | PRD v1.0 · TRD v1.0 · User Journey Flow |
 | **Platform target** | Mobile-first (HP Android kader) · Desktop fallback (laptop KKN) |
-| **Pengguna utama** | Kader posyandu, sebagian besar usia lanjut, literasi digital terbatas |
+| **Pengguna utama** | Staf Tenaga Kesehatan, sebagian besar usia lanjut, literasi digital terbatas |
 
 ---
 
 ## 1. Konteks & Tantangan Desain
 
-Ini bukan aplikasi untuk anak muda yang sudah terbiasa berinteraksi dengan layar. Pengguna utama sistem ini adalah kader posyandu berusia 40–65 tahun yang terbiasa bekerja dengan formulir kertas, pensil, dan tabel tulis tangan. Mereka mungkin baru pertama kali menggunakan sistem digital untuk pencatatan kesehatan.
+Ini bukan aplikasi untuk anak muda yang sudah terbiasa berinteraksi dengan layar. Pengguna utama sistem ini adalah staf tenaga kesehatan berusia 40–65 tahun yang terbiasa bekerja dengan formulir kertas, pensil, dan tabel tulis tangan. Mereka mungkin baru pertama kali menggunakan sistem digital untuk pencatatan kesehatan.
 
 Tiga tantangan desain terbesar yang harus dijawab:
 
 1. **Kepercayaan** — kader harus merasa sistem ini "tidak akan merusak data" saat mereka mencoba sesuatu. Setiap aksi destruktif (hapus) harus punya pagar pengaman (recycle bin, konfirmasi). Setiap aksi berhasil harus memberikan umpan balik yang jelas dan meyakinkan.
 2. **Orientasi** — kader tidak boleh pernah merasa "tersesat" di dalam sistem. Mereka harus selalu tahu sedang di mana, sudah sampai langkah berapa, dan apa yang harus dilakukan selanjutnya.
-3. **Kecepatan yang wajar** — di hari posyandu, ada 30–60 warga yang mengantri. Satu sesi input per warga idealnya tidak lebih dari 5 menit. Desain tidak boleh memperlambat alur dengan langkah tambahan yang tidak perlu.
+3. **Kecepatan yang wajar** — di hari puskesmas, ada 30–60 warga yang mengantri. Satu sesi input per warga idealnya tidak lebih dari 5 menit. Desain tidak boleh memperlambat alur dengan langkah tambahan yang tidak perlu.
 
 ---
 
@@ -47,11 +47,11 @@ Semua aksi hapus masuk recycle bin dulu (30 hari). Tidak ada penghapusan permane
 ## 3. Persona
 
 ### Persona A — Kader Utama (pengguna harian)
-**"Bu Sari, 52 tahun, kader posyandu sejak 15 tahun lalu"**
+**"Bu Sari, 52 tahun, staf tenaga kesehatan sejak 15 tahun lalu"**
 - HP Android entry-level (RAM 2–3 GB, layar 5.5 inci)
 - Terbiasa WhatsApp dan foto, belum pernah pakai aplikasi formulir digital
 - Sering pakai kacamata baca
-- Kondisi kerja: ruang posyandu ramai, pencahayaan kadang kurang, tangan kadang basah/berkeringat
+- Kondisi kerja: ruang puskesmas ramai, pencahayaan kadang kurang, tangan kadang basah/berkeringat
 - Kebutuhan: input cepat, tidak panik kalau salah, bisa lihat hasil langsung
 
 ### Persona B — Admin Lokal (pengguna sesekali)
@@ -225,11 +225,11 @@ Elemen visual yang paling menonjol di implementasi sekarang adalah **kartu-kartu
 
 ### 6.1 Login
 - Ilustrasi/ikon sederhana di atas (bukan foto atau gambar berat)
-- Judul: "CERIA Posyandu" dengan subjudul nama desa
+- Judul: "CERIA Puskesmas" dengan subjudul nama desa
 - Dua field: Email + Password
 - Satu tombol: "Masuk"
 - **Tidak ada** link "Daftar akun baru" — pendaftaran hanya lewat admin
-- Pesan error jika gagal login: "Email atau kata sandi salah. Hubungi admin posyandu untuk bantuan."
+- Pesan error jika gagal login: "Email atau kata sandi salah. Hubungi admin puskesmas untuk bantuan."
 
 ### 6.2 Dashboard
 - Sidebar navigasi dengan 4 kartu aksi utama: Input Data, Daftar Warga, Rekap Desa, Impor CSV
@@ -391,7 +391,7 @@ Sistem ini **mobile-first** — desktop adalah fallback, bukan target utama. Sel
 
 Beberapa keputusan desain berupa penghilangan yang disengaja:
 
-- **Tidak ada dark mode** — menambah kompleksitas visual testing tanpa manfaat signifikan untuk konteks posyandu siang hari. Bisa ditambah di iterasi berikutnya.
+- **Tidak ada dark mode** — menambah kompleksitas visual testing tanpa manfaat signifikan untuk konteks puskesmas siang hari. Bisa ditambah di iterasi berikutnya.
 - **Tidak ada animasi page transition** — koneksi di lapangan bisa lambat, transisi halus bisa terasa lag dan mengecohkan kader bahwa ada yang salah.
 - **Tidak ada fitur kamera / scan KTP** — butuh permission browser + handling gagal scan + library tambahan. Verifikasi NIK tetap manual (ketik dari fotokopi KTP).
 - **Tidak ada notifikasi push** — semua gateway push notification berbayar atau butuh service worker yang kompleks. Rekap desa sudah cukup sebagai mekanisme tindak lanjut.

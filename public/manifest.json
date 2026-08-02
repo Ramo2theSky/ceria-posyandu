@@ -1,7 +1,7 @@
 {
-  "name": "CERIA Posyandu",
+  "name": "CERIA Puskesmas",
   "short_name": "CERIA",
-  "description": "Sistem Pendataan Kesehatan Digital Posyandu",
+  "description": "Sistem Pendataan Kesehatan Digital Puskesmas",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F6F7F1",

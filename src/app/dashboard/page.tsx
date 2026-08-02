@@ -253,7 +253,7 @@ export default function DashboardPage() {
   const menuItems: MenuItem[] = useMemo(() => [
     { href: '/input', title: 'Input Data Warga', description: 'Tambah pemeriksaan baru dengan cepat.', tone: 'teal' },
     { href: '/daftar', title: 'Daftar Warga', description: 'Cari dan lihat data warga yang sudah tersimpan.', tone: 'sky' },
-    { href: '/rekap', title: 'Rekap Desa', description: 'Tinjau ringkasan kesehatan dan tren data.', tone: 'amber' },
+    { href: '/rekap', title: 'Rekap Puskesmas', description: 'Tinjau ringkasan kesehatan dan tren data.', tone: 'amber' },
     { href: '/import', title: 'Impor CSV', description: 'Masukkan data massal dari file CSV.', tone: 'slate' },
     { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'red' },
   ], []);
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                 Selamat datang, {displayName}
               </h2>
               <p className="mt-3 max-w-2xl text-base text-slate-600 md:text-lg">
-                Pilih menu tindakan cepat untuk input data, menelusuri daftar warga, atau membuka rekap kesehatan desa.
+                Pilih menu tindakan cepat untuk input data, menelusuri daftar warga, atau membuka rekap kesehatan puskesmas.
               </p>
             </div>
 

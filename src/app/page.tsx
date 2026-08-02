@@ -35,7 +35,7 @@ export default function WelcomePage() {
           <p className="text-[var(--color-tinta-lembut)] text-base mb-10 leading-relaxed">
             Sistem Pendataan & Skrining Kesehatan Digital
             <br />
-            untuk Posyandu Remaja &amp; Lansia
+            untuk Puskesmas Karanganom
           </p>
 
           <Link
@@ -46,7 +46,7 @@ export default function WelcomePage() {
           </Link>
 
           <p className="text-xs text-[var(--color-tinta-lembut)] mt-8 opacity-60">
-            Hubungi admin posyandu untuk mendapatkan akun
+            Hubungi admin puskesmas untuk mendapatkan akun
           </p>
         </div>
       </div>

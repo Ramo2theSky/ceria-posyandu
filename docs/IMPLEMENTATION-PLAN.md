@@ -1,8 +1,8 @@
 # CERIA — Implementation Plan & Progress Report
 
 > **CERIA** = Cek Kesehatan Interaktif & Aplikatif
-> Platform pengumpulan dan klasifikasi data kesehatan warga untuk Posyandu Remaja & Lansia
-> Desa Jurangjero, Karanganom, Klaten
+> Platform pengumpulan dan klasifikasi data kesehatan warga untuk Puskesmas Remaja & Lansia
+> Puskesmas Karanganom, Karanganom, Klaten
 
 ---
 
@@ -24,16 +24,16 @@
 
 ## 1. Project Overview
 
-**Problem:** Posyandu Remaja & Lansia di Desa Jurangjero masih menggunakan formulir kertas (CKG) untuk mencatat data kesehatan warga. Proses manual ini rentan terhadap kesalahan, sulit dilacak, dan tidak memiliki riwayat data yang terstruktur.
+**Problem:** Puskesmas Remaja & Lansia di Puskesmas Karanganom masih menggunakan formulir kertas (CKG) untuk mencatat data kesehatan warga. Proses manual ini rentan terhadap kesalahan, sulit dilacak, dan tidak memiliki riwayat data yang terstruktur.
 
-**Solution:** Aplikasi web CERIA yang memungkinkan kader posyandu:
+**Solution:** Aplikasi web CERIA yang memungkinkan staf tenaga kesehatan:
 - Input data pemeriksaan kesehatan warga secara digital
 - Klasifikasi otomatis berdasarkan standar WHO & Kemenkes RI
 - Melihat daftar warga dengan pencarian dan filter
 - Mencetak rekap data per desa
 - Mengimpor data dari file CSV (eksport dari Google Sheets)
 
-**Users:** Kader posyandu berusia 40-65 tahun dengan tingkat literasi digital terbatas, menggunakan perangkat Android kelas menengah ke bawah (RAM 2-3GB, layar 5.5").
+**Users:** Staf Tenaga Kesehatan berusia 40-65 tahun dengan tingkat literasi digital terbatas, menggunakan perangkat Android kelas menengah ke bawah (RAM 2-3GB, layar 5.5").
 
 ---
 

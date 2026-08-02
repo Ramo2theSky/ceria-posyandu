@@ -1,6 +1,6 @@
 # Technical Requirements Document (TRD)
-## CERIA — Sistem Pendataan & Skrining Kesehatan Digital Posyandu Remaja & Lansia
-### Desa Jurangjero, Karanganom, Klaten
+## CERIA — Sistem Pendataan & Skrining Kesehatan Digital Puskesmas Remaja & Lansia
+### Puskesmas Karanganom, Karanganom, Klaten
 
 | | |
 |---|---|
@@ -348,7 +348,7 @@ function parseTanggal(str) {
 
 ## 10. Temuan Data Riil yang Perlu Ditindaklanjuti
 
-Dari analisis `KKN_CERIA_-_30_Juni.csv` — ini bukan keputusan teknis, tapi perlu dikonfirmasi ke bidan posyandu:
+Dari analisis `KKN_CERIA_-_30_Juni.csv` — ini bukan keputusan teknis, tapi perlu dikonfirmasi ke bidan puskesmas:
 
 | # | Temuan | Baris | Rekomendasi |
 |---|---|---|---|
@@ -364,7 +364,7 @@ Dari analisis `KKN_CERIA_-_30_Juni.csv` — ini bukan keputusan teknis, tapi per
 
 ## 11. Definisi Selesai (Definition of Done)
 
-Sistem dinyatakan siap diserahterimakan ke posyandu apabila:
+Sistem dinyatakan siap diserahterimakan ke puskesmas apabila:
 
 - [ ] Seluruh data contoh CSV di `docs/` berhasil diimpor ke database tanpa error yang tidak perlu
 - [ ] Data sesi berikutnya bisa diinput manual dan hasilnya tersinkronisasi
@@ -374,4 +374,4 @@ Sistem dinyatakan siap diserahterimakan ke posyandu apabila:
 - [ ] Sistem dapat diakses dari HP Android/iOS yang biasa dipakai kader
 - [ ] Minimal 2 kader berhasil menggunakan sistem secara mandiri tanpa pendampingan mahasiswa
 - [ ] Manual penggunaan bergambar sudah diserahkan dalam bentuk cetak dan digital
-- [ ] Akun Vercel dan Supabase sudah dipindahkan ke email institusional posyandu/desa
+- [ ] Akun Vercel dan Supabase sudah dipindahkan ke email institusional puskesmas/desa

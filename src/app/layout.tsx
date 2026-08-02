@@ -10,8 +10,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "CERIA Posyandu - Sistem Pendataan Kesehatan",
-  description: "Sistem pendataan dan skrining kesehatan digital untuk Posyandu Remaja & Lansia",
+  title: "CERIA Puskesmas - Sistem Pendataan Kesehatan",
+  description: "Sistem pendataan dan skrining kesehatan digital untuk Puskesmas Karanganom",
   manifest: "/manifest.json",
   icons: {
     icon: [

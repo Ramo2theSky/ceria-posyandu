@@ -157,7 +157,7 @@ export default function RekapPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `rekap-desa-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `rekap-puskesmas-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
   };
 
@@ -253,7 +253,7 @@ export default function RekapPage() {
         {/* ─── Filter Toggle (mobile) ─── */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-[var(--color-tinta)]">Rekap Desa</h1>
+            <h1 className="text-xl font-bold text-[var(--color-tinta)]">Rekap Puskesmas</h1>
             <p className="text-xs text-[var(--color-tinta-lembut)]">Dashboard overview data kesehatan warga</p>
           </div>
           <div className="flex items-center gap-2">

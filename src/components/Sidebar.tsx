@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: 'dashboard' },
   { href: '/input', label: 'Input Data', icon: 'input' },
   { href: '/daftar', label: 'Daftar Warga', icon: 'daftar' },
-  { href: '/rekap', label: 'Rekap Desa', icon: 'rekap' },
+  { href: '/rekap', label: 'Rekap Puskesmas', icon: 'rekap' },
   { href: '/import', label: 'Impor CSV', icon: 'import' },
   { href: '/recycle-bin', label: 'Recycle Bin', icon: 'recycle' },
 ] as const;
@@ -84,7 +84,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         <Link href="/dashboard" className="flex items-center gap-3" onClick={onClose}>
           <img src="/ceria-logo.png" alt="CERIA" className="h-10" />
           <div>
-            <p className="text-sm text-slate-500">Sistem Kesehatan Desa</p>
+            <p className="text-sm text-slate-500">Puskesmas</p>
           </div>
         </Link>
         <button onClick={onClose} className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100">
