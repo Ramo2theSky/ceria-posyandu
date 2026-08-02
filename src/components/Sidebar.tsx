@@ -118,13 +118,13 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* SWARYA Branding */}
-      <div className="mt-4 flex items-center gap-2 px-2">
+      <div className="mt-4 mb-3 flex items-center gap-2 px-2">
         <img src="/swarya-logo.png" alt="SWARYA" className="h-5 w-auto" />
         <span className="text-[10px] text-slate-400 font-semibold">&copy; 2026 KKN PPM UGM</span>
       </div>
 
       {/* User Card */}
-      <div className="mt-auto rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-md">
+      <div className="mt-auto mb-2 rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-md">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-bold text-slate-600">
             {initials}
