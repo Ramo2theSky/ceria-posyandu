@@ -249,7 +249,6 @@ export default function RekapPage() {
       <div className="flex items-center justify-between px-6 py-4">
         <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
           <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
-          <span className="font-semibold hidden sm:inline">CERIA</span>
         </button>
         <div className="flex items-center gap-3">
           <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden p-2 rounded-lg hover:bg-white text-[var(--color-tinta-lembut)]">

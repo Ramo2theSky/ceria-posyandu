@@ -63,7 +63,7 @@ export default function LupaPasswordPage() {
           </div>
           <h1 className="text-2xl font-bold text-[var(--color-tinta)]">Lupa Kata Sandi</h1>
           <p className="text-[var(--color-tinta-lembut)] mt-2 text-sm">
-            Masukkan email akun CERIA Anda
+            Masukkan email akun Anda
           </p>
         </div>
 

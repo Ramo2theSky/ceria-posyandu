@@ -99,7 +99,7 @@ export default function ResetPasswordPage() {
           </div>
           <h1 className="text-2xl font-bold text-[var(--color-tinta)]">Kata Sandi Baru</h1>
           <p className="text-[var(--color-tinta-lembut)] mt-2 text-sm">
-            Buat kata sandi baru untuk akun CERIA Anda
+            Buat kata sandi baru untuk akun Anda
           </p>
         </div>
 

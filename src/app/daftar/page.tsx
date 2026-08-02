@@ -36,7 +36,7 @@ interface CSVRow {
   line: number;
 }
 
-type SortField = 'nik' | 'usia' | 'jenis_kelamin' | 'berat_badan' | 'tinggi_badan' | 'tanggal_periksa' | 'catatan';
+type SortField = 'nik' | 'usia' | 'jenis_kelamin' | 'berat_badan' | 'tinggi_badan' | 'imt' | 'tanggal_periksa' | 'dibuat_pada' | 'catatan';
 type SortDir = 'asc' | 'desc';
 
 function SortIcon({ field, sortField, sortDir }: { field: SortField; sortField: SortField; sortDir: SortDir }) {
@@ -71,7 +71,7 @@ export default function DaftarPage() {
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
-  const [sortField, setSortField] = useState<SortField>('tanggal_periksa');
+  const [sortField, setSortField] = useState<SortField>('dibuat_pada');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -343,9 +343,17 @@ export default function DaftarPage() {
         aVal = a.tinggi_badan;
         bVal = b.tinggi_badan;
         break;
+      case 'imt':
+        aVal = a.berat_badan / Math.pow(a.tinggi_badan / 100, 2);
+        bVal = b.berat_badan / Math.pow(b.tinggi_badan / 100, 2);
+        break;
       case 'tanggal_periksa':
         aVal = a.tanggal_periksa;
         bVal = b.tanggal_periksa;
+        break;
+      case 'dibuat_pada':
+        aVal = a.dibuat_pada || '';
+        bVal = b.dibuat_pada || '';
         break;
       case 'catatan': {
         const statusOrder: Record<string, number> = { 'SEHAT': 1, 'PERLU PEMANTAUAN': 2, 'PERLU RUJUKAN': 3 };
@@ -354,8 +362,8 @@ export default function DaftarPage() {
         return sortDir === 'asc' ? aOrder - bOrder : bOrder - aOrder;
       }
       default:
-        aVal = a.tanggal_periksa;
-        bVal = b.tanggal_periksa;
+        aVal = a.dibuat_pada || '';
+        bVal = b.dibuat_pada || '';
     }
 
     if (typeof aVal === 'string') {
@@ -380,6 +388,12 @@ export default function DaftarPage() {
     return 'SEHAT';
   };
 
+  const getStatusIcon = (catatan: string) => {
+    if (catatan?.includes('PERLU RUJUKAN')) return '!!';
+    if (catatan?.includes('PERLU PEMANTAUAN')) return '!';
+    return '★';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -393,7 +407,6 @@ export default function DaftarPage() {
       <div className="flex items-center justify-between px-6 py-4">
         <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-[var(--color-tinta-lembut)] hover:text-[var(--color-tinta)]">
           <img src="/ceria-logo.png" alt="CERIA" className="h-5" />
-          <span className="font-semibold hidden sm:inline">CERIA</span>
         </button>
         <button onClick={() => router.push('/dashboard')} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)] hover:text-[var(--color-tinta)]">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
@@ -537,12 +550,16 @@ export default function DaftarPage() {
                 <th className="px-3 py-2.5 text-right text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('tinggi_badan')}>
                   TB <SortIcon field="tinggi_badan" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2.5 text-right text-xs font-semibold text-[var(--color-tinta-lembut)]">IMT</th>
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('imt')}>
+                  IMT <SortIcon field="imt" sortField={sortField} sortDir={sortDir} />
+                </th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)]">TD</th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('catatan')}>
                   Status <SortIcon field="catatan" sortField={sortField} sortDir={sortDir} />
                 </th>
-                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)]">Waktu Input</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('dibuat_pada')}>
+                  Waktu Input <SortIcon field="dibuat_pada" sortField={sortField} sortDir={sortDir} />
+                </th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)]">Aksi</th>
               </tr>
             </thead>
@@ -596,7 +613,7 @@ export default function DaftarPage() {
                       </td>
                       <td className="px-3 py-2 text-center">
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(d.catatan)}`}>
-                          {!isSehat && <span>★</span>}
+                          <span className="font-bold">{getStatusIcon(d.catatan)}</span>
                           {getStatusLabel(d.catatan)}
                         </span>
                       </td>
