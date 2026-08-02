@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: "CERIA Posyandu - Sistem Pendataan Kesehatan",
   description: "Sistem pendataan dan skrining kesehatan digital untuk Posyandu Remaja & Lansia",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
