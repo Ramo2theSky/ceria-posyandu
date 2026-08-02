@@ -60,7 +60,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden pb-20">
       <div className="pointer-events-none absolute inset-0 opacity-40" aria-hidden="true">
         <Aurora
           colorStops={['#2F7D52', '#1F4E4A', '#D9A23B']}

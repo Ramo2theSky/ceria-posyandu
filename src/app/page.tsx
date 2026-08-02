@@ -5,7 +5,7 @@ import DotGrid from '@/components/ReactBits/DotGrid';
 
 export default function WelcomePage() {
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--color-kertas)]">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--color-kertas)] pb-20">
       <div className="absolute inset-0 z-0">
         <DotGrid
           dotSize={6}

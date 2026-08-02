@@ -216,6 +216,7 @@ export default function DashboardPage() {
     { href: '/daftar', title: 'Daftar Warga', description: 'Cari dan lihat data warga yang sudah tersimpan.', tone: 'sky' },
     { href: '/rekap', title: 'Rekap Desa', description: 'Tinjau ringkasan kesehatan dan tren data.', tone: 'amber' },
     { href: '/import', title: 'Impor CSV', description: 'Masukkan data massal dari file CSV.', tone: 'slate' },
+    { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'slate' },
   ], []);
 
   const handleLogout = async () => {
@@ -284,6 +285,12 @@ export default function DashboardPage() {
             <span>Impor CSV</span>
           </Link>
         </nav>
+
+        {/* SWARYA Branding */}
+        <div className="mt-4 flex items-center gap-2 px-2">
+          <img src="/swarya-logo.png" alt="SWARYA" className="h-5 w-auto" />
+          <span className="text-[10px] text-slate-400 font-semibold">© 2026 KKN PPM UGM</span>
+        </div>
 
         <div className="mt-auto rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-md">
           <div className="flex items-center gap-3">
