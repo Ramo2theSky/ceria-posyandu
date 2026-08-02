@@ -131,7 +131,7 @@ export default function RecycleBinPage() {
         </button>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 pb-8">
+      <main className="max-w-4xl mx-auto px-4 pb-20">
         <div className="mb-6">
           <h1 className="text-xl font-bold text-[var(--color-tinta)]">Recycle Bin</h1>
           <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">{data.length} data terhapus</p>

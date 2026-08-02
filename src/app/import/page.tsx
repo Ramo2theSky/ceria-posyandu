@@ -189,7 +189,7 @@ export default function ImportPage() {
         </button>
       </div>
 
-      <main className="px-4 pb-8 max-w-2xl mx-auto space-y-4">
+      <main className="px-4 pb-20 max-w-2xl mx-auto space-y-4">
         <div className="mb-6">
           <h1 className="text-xl font-bold text-[var(--color-tinta)]">Import CSV</h1>
           <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">Upload file CSV untuk impor data warga sekaligus</p>

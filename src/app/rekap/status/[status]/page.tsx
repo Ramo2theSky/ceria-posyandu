@@ -121,7 +121,7 @@ export default function RekapStatusPage() {
         </button>
       </div>
 
-      <div className="px-4 pb-8 max-w-3xl mx-auto">
+      <div className="px-4 pb-20 max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">

@@ -387,7 +387,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-8 md:py-8">
+        <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 pb-20 md:px-8 md:py-8">
           <section className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-md md:grid-cols-[1.4fr_0.8fr] md:p-6">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-teal-700">Overview</p>

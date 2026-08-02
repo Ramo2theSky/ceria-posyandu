@@ -413,7 +413,7 @@ export default function DaftarPage() {
         </button>
       </div>
 
-      <main className="px-4 pb-8 max-w-5xl mx-auto">
+      <main className="px-4 pb-20 max-w-5xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl font-bold text-[var(--color-tinta)]">Daftar Warga</h1>
           <p className="text-xs text-[var(--color-tinta-lembut)] mt-1">Kelola data warga yang sudah diperiksa</p>

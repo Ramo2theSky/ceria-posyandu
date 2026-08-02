@@ -260,7 +260,7 @@ export default function RekapPage() {
         </div>
       </div>
 
-      <div className="px-4 pb-8 flex gap-5 max-w-[1400px] mx-auto">
+      <div className="px-4 pb-20 flex gap-5 max-w-[1400px] mx-auto">
         {/* ─── Sidebar Filter ─── */}
         <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 shrink-0 space-y-4`}>
           <div className="bg-white rounded-2xl border border-[var(--color-garis)] p-5 space-y-5">

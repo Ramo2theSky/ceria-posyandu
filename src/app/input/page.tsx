@@ -244,7 +244,7 @@ export default function InputPage() {
       </div>
 
       {/* Main content */}
-      <div className="px-4 pb-8 flex justify-center">
+      <div className="px-4 pb-20 flex justify-center">
         <div className="w-full max-w-lg">
           {/* Header */}
           <div className="mb-6">
