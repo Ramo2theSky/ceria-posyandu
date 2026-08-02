@@ -228,7 +228,7 @@ export default function DashboardPage() {
     { href: '/daftar', title: 'Daftar Warga', description: 'Cari dan lihat data warga yang sudah tersimpan.', tone: 'sky' },
     { href: '/rekap', title: 'Rekap Desa', description: 'Tinjau ringkasan kesehatan dan tren data.', tone: 'amber' },
     { href: '/import', title: 'Impor CSV', description: 'Masukkan data massal dari file CSV.', tone: 'slate' },
-    { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'red' },
+    { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'slate' },
   ], []);
 
   const handleLogout = async () => {
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                       item.href === '/input' ? 'rgba(16, 185, 129, 0.15)' :
                       item.href === '/daftar' ? 'rgba(14, 116, 144, 0.12)' :
                       item.href === '/rekap' ? 'rgba(217, 162, 59, 0.12)' :
-                      item.href === '/recycle-bin' ? 'rgba(220, 38, 38, 0.12)' :
+                      item.href === '/recycle-bin' ? 'rgba(100, 116, 139, 0.1)' :
                       'rgba(100, 116, 139, 0.1)'
                     }
                     className="h-full p-5"
@@ -473,7 +473,7 @@ export default function DashboardPage() {
                           item.href === '/input' ? 'text-slate-900 group-hover:text-teal-700' :
                           item.href === '/daftar' ? 'text-slate-900 group-hover:text-sky-700' :
                           item.href === '/rekap' ? 'text-slate-900 group-hover:text-amber-700' :
-                          item.href === '/recycle-bin' ? 'text-red-600 group-hover:text-red-700' :
+                           item.href === '/recycle-bin' ? 'text-slate-900 group-hover:text-slate-700' :
                           'text-slate-900 group-hover:text-slate-700'
                         }`}>{item.title}</h4>
                         <p className="mt-2 text-base leading-6 text-slate-600">{item.description}</p>
@@ -483,7 +483,7 @@ export default function DashboardPage() {
                         item.href === '/input' ? 'text-teal-700' :
                         item.href === '/daftar' ? 'text-sky-700' :
                         item.href === '/rekap' ? 'text-amber-700' :
-                        item.href === '/recycle-bin' ? 'text-red-600' :
+                        item.href === '/recycle-bin' ? 'text-slate-700' :
                         'text-slate-700'
                       }`}>
                         <span>Buka menu</span>
