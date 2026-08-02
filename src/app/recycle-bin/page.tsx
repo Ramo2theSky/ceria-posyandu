@@ -75,7 +75,8 @@ export default function RecycleBinPage() {
       if (record) logActivity('restore', record.nik, `Data warga ${record.nik} dipulihkan dari recycle bin`);
       setData(data.filter(d => d.id !== id));
     } else {
-      alert('Gagal memulihkan data');
+      console.error('Restore error:', error);
+      alert(`Gagal memulihkan data: ${error.message}`);
     }
     setProcessingId(null);
   }

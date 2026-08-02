@@ -216,10 +216,36 @@ export default function DashboardPage() {
       setStatsLoading(false);
     }
 
+    async function loadStatsOnly() {
+      const today = new Date();
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+
+      const [totalResult, monthResult, todayResult, rujukanResult] = await Promise.all([
+        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null),
+        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).gte('tanggal_periksa', monthStart),
+        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).eq('tanggal_periksa', todayStr),
+        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).ilike('catatan', '%PERLU RUJUKAN%'),
+      ]);
+
+      setStats({
+        totalWarga: totalResult.count ?? 0,
+        pemeriksaanBulanIni: monthResult.count ?? 0,
+        pemeriksaanHariIni: todayResult.count ?? 0,
+        perluRujukan: rujukanResult.count ?? 0,
+      });
+    }
+
     loadUserAndStats();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') loadStatsOnly();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [router]);
 
@@ -228,7 +254,7 @@ export default function DashboardPage() {
     { href: '/daftar', title: 'Daftar Warga', description: 'Cari dan lihat data warga yang sudah tersimpan.', tone: 'sky' },
     { href: '/rekap', title: 'Rekap Desa', description: 'Tinjau ringkasan kesehatan dan tren data.', tone: 'amber' },
     { href: '/import', title: 'Impor CSV', description: 'Masukkan data massal dari file CSV.', tone: 'slate' },
-    { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'slate' },
+    { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'red' },
   ], []);
 
   const handleLogout = async () => {
@@ -455,7 +481,7 @@ export default function DashboardPage() {
                       item.href === '/input' ? 'rgba(16, 185, 129, 0.15)' :
                       item.href === '/daftar' ? 'rgba(14, 116, 144, 0.12)' :
                       item.href === '/rekap' ? 'rgba(217, 162, 59, 0.12)' :
-                      item.href === '/recycle-bin' ? 'rgba(100, 116, 139, 0.1)' :
+                      item.href === '/recycle-bin' ? 'rgba(220, 38, 38, 0.12)' :
                       'rgba(100, 116, 139, 0.1)'
                     }
                     className="h-full p-5"
@@ -483,11 +509,11 @@ export default function DashboardPage() {
                         item.href === '/input' ? 'text-teal-700' :
                         item.href === '/daftar' ? 'text-sky-700' :
                         item.href === '/rekap' ? 'text-amber-700' :
-                        item.href === '/recycle-bin' ? 'text-slate-700' :
+                        item.href === '/recycle-bin' ? 'text-red-600' :
                         'text-slate-700'
                       }`}>
                         <span>Buka menu</span>
-                        <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
+                        <ArrowRightIcon className={`h-4 w-4 transition group-hover:translate-x-1 ${item.href === '/recycle-bin' ? 'text-red-600' : ''}`} />
                       </div>
                     </div>
                   </SpotlightCard>
