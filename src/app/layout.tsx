@@ -14,7 +14,9 @@ export const metadata: Metadata = {
   description: "Sistem pendataan dan skrining kesehatan digital untuk Posyandu Remaja & Lansia",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
   },
 };
 

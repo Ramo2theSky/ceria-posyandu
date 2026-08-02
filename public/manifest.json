@@ -8,6 +8,11 @@
   "theme_color": "#1F4E4A",
   "icons": [
     {
+      "src": "/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
       "src": "/ceria-logo.png",
       "sizes": "192x192",
       "type": "image/png"
