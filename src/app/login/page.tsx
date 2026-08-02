@@ -23,7 +23,6 @@ export default function LoginPage() {
       try {
         const data = JSON.parse(saved);
         setEmail(data.email || '');
-        setPassword(data.password || '');
         setRememberMe(true);
       } catch {}
     }
@@ -36,7 +35,7 @@ export default function LoginPage() {
 
     try {
       if (rememberMe) {
-        localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email, password }));
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email }));
       } else {
         localStorage.removeItem(REMEMBER_KEY);
       }
