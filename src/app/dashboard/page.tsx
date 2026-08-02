@@ -148,6 +148,17 @@ function ActivityIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function TrashIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      <line x1="10" y1="11" x2="10" y2="17"/>
+      <line x1="14" y1="11" x2="14" y2="17"/>
+    </svg>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<DashboardUser | null>(null);
@@ -429,10 +440,9 @@ export default function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Aksi cepat</p>
                 <h3 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">Menu utama</h3>
               </div>
-              <p className="hidden text-sm text-slate-500 md:block">Semua kartu di bawah memiliki tinggi sentuh yang besar untuk penggunaan di HP.</p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
@@ -455,6 +465,7 @@ export default function DashboardPage() {
                           {item.href === '/daftar' && <UsersIcon className="h-5 w-5" />}
                           {item.href === '/rekap' && <ChartIcon className="h-5 w-5" />}
                           {item.href === '/import' && <FileIcon className="h-5 w-5" />}
+                          {item.href === '/recycle-bin' && <TrashIcon className="h-5 w-5" />}
                         </IconShell>
                         <h4 className={`mt-5 text-lg font-semibold transition ${
                           item.href === '/input' ? 'text-slate-900 group-hover:text-teal-700' :
@@ -478,58 +489,6 @@ export default function DashboardPage() {
                   </SpotlightCard>
                 </Link>
               ))}
-            </div>
-
-            <div className="flex justify-center">
-              <Link
-                href="/recycle-bin"
-                className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 transition"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-                Recycle Bin
-              </Link>
-            </div>
-
-          </section>
-
-          <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-md md:p-6">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Panduan kerja cepat</p>
-                  <h3 className="mt-1 text-lg font-semibold text-slate-900">Urutan kerja yang paling aman di posyandu</h3>
-                </div>
-                <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 md:inline-flex">
-                  Mobile-friendly
-                </span>
-              </div>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                {[
-                  { step: '1', title: 'Input', description: 'Tambah pemeriksaan atau impor CSV.' },
-                  { step: '2', title: 'Cek', description: 'Buka daftar warga dan detail saat diperlukan.' },
-                  { step: '3', title: 'Rekap', description: 'Gunakan rekap desa untuk laporan dan monitoring.' },
-                ].map((item) => (
-                  <div key={item.step} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-sm font-semibold text-teal-700">
-                      {item.step}
-                    </div>
-                    <h4 className="mt-3 text-base font-semibold text-slate-900">{item.title}</h4>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-slate-900 p-5 text-white shadow-md md:p-6">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-teal-200">Perhatian</p>
-              <h3 className="mt-2 text-xl font-semibold tracking-tight">Data sensitif tetap dijaga</h3>
-              <p className="mt-3 text-base leading-7 text-slate-200">
-                NIK tetap dimasking di list, dan detail penuh hanya ditampilkan saat baris dibuka. Gunakan menu detail seperlunya saat kerja di meja posyandu.
-              </p>
             </div>
           </section>
         </main>
