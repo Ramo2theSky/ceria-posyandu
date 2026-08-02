@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasifikasiKolesterol, klasifikasiLP, type JenisGulaDarah } from '@/lib/klasifikasi';
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
-import { captureAndDownload } from '@/lib/pdf-export';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
@@ -50,7 +49,6 @@ export default function RekapPage() {
   const [riwayatData, setRiwayatData] = useState<RiwayatPemeriksaan[] | null>(null);
   const [loadingRiwayat, setLoadingRiwayat] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
-  const dashboardRef = useRef<HTMLDivElement>(null);
 
   const handleShowRiwayat = useCallback(async (nik: string) => {
     setLoadingRiwayat(true);
@@ -165,12 +163,274 @@ export default function RekapPage() {
   };
 
   const handleExportPDF = async () => {
-    if (!dashboardRef.current || exportingPDF) return;
+    if (exportingPDF) return;
     setExportingPDF(true);
     try {
-      await captureAndDownload(dashboardRef.current, `rekap-desa-${new Date().toISOString().split('T')[0]}`);
-    } catch {
-      alert('Gagal membuat PDF');
+      const { default: jsPDF } = await import('jspdf');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, H = 297;
+      const mx = 15;
+      let y = 20;
+
+      const hexToRgb = (hex: string) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return [r, g, b];
+      };
+      const cHijau = [31, 78, 74] as const;
+      const cKuning = [217, 162, 59] as const;
+      const cMerah = [185, 60, 55] as const;
+      const cPadi = [217, 162, 59] as const;
+
+      const drawDonut = (cx: number, cy: number, r: number, segments: { pct: number; color: number[] }[], label: string, value: number) => {
+        const sw = 6;
+        pdf.setDrawColor(230, 230, 230);
+        pdf.setLineWidth(sw);
+        pdf.circle(cx, cy, r, 'S');
+        let cumPct = 0;
+        for (const seg of segments) {
+          if (seg.pct <= 0) continue;
+          const startAngle = (cumPct * 360 - 90) * (Math.PI / 180);
+          const endAngle = ((cumPct + seg.pct) * 360 - 90) * (Math.PI / 180);
+          pdf.setDrawColor(seg.color[0], seg.color[1], seg.color[2]);
+          pdf.setLineWidth(sw);
+          const steps = Math.max(Math.ceil(seg.pct * 60), 4);
+          for (let s = 0; s < steps; s++) {
+            const a1 = startAngle + (endAngle - startAngle) * (s / steps);
+            const a2 = startAngle + (endAngle - startAngle) * ((s + 1) / steps);
+            pdf.line(
+              cx + r * Math.cos(a1), cy + r * Math.sin(a1),
+              cx + r * Math.cos(a2), cy + r * Math.sin(a2)
+            );
+          }
+          cumPct += seg.pct;
+        }
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(String(value), cx, cy - 1, { align: 'center' });
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(120);
+        pdf.text(label, cx, cy + 4, { align: 'center' });
+        pdf.setTextColor(0);
+      };
+
+      const drawBar = (bx: number, by: number, bw: number, bh: number, pct: number, color: number[]) => {
+        pdf.setFillColor(240, 240, 240);
+        pdf.roundedRect(bx, by, bw, bh, 1, 1, 'F');
+        if (pct > 0) {
+          pdf.setFillColor(color[0], color[1], color[2]);
+          pdf.roundedRect(bx, by + bh * (1 - pct), bw, bh * pct, 1, 1, 'F');
+        }
+      };
+
+      const drawCard = (cx: number, cy: number, cw: number, ch: number, title: string, value: string, color: number[]) => {
+        pdf.setFillColor(255, 255, 255);
+        pdf.setDrawColor(220, 220, 220);
+        pdf.roundedRect(cx, cy, cw, ch, 3, 3, 'FD');
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(120);
+        pdf.text(title, cx + 4, cy + 6);
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(color[0], color[1], color[2]);
+        pdf.text(value, cx + 4, cy + 16);
+        pdf.setTextColor(0);
+      };
+
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Rekap Desa', mx, y);
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(120);
+      pdf.text(`Dashboard data kesehatan · ${totalWarga} warga · ${new Date().toLocaleDateString('id-ID')}`, mx, y + 6);
+      pdf.setTextColor(0);
+      y += 16;
+
+      const cardW = (W - mx * 2 - 9) / 4;
+      const cardH = 20;
+      drawCard(mx, y, cardW, cardH, 'Total Warga', String(totalWarga), [40, 40, 40]);
+      drawCard(mx + (cardW + 3), y, cardW, cardH, 'Sehat', String(sehat), [...cHijau]);
+      drawCard(mx + (cardW + 3) * 2, y, cardW, cardH, 'Perlu Pemantauan', String(perluPemantauan), [...cKuning]);
+      drawCard(mx + (cardW + 3) * 3, y, cardW, cardH, 'Perlu Rujukan', String(perluRujukan), [...cMerah]);
+      y += cardH + 12;
+
+      const donutR = 22;
+      const donutCX1 = mx + 35;
+      const donutCX2 = W / 2 + 35;
+      const donutCY = y + 25;
+      const statusSegs = [
+        { pct: totalWarga > 0 ? sehat / totalWarga : 0, color: [...cHijau] },
+        { pct: totalWarga > 0 ? perluPemantauan / totalWarga : 0, color: [...cKuning] },
+        { pct: totalWarga > 0 ? perluRujukan / totalWarga : 0, color: [...cMerah] },
+      ];
+      const usiaSegs = [
+        { pct: totalWarga > 0 ? remaja / totalWarga : 0, color: [...cPadi] },
+        { pct: totalWarga > 0 ? dewasa / totalWarga : 0, color: [...cHijau] },
+        { pct: totalWarga > 0 ? lansia / totalWarga : 0, color: [130, 130, 130] },
+      ];
+      drawDonut(donutCX1, donutCY, donutR, statusSegs, 'total', totalWarga);
+      drawDonut(donutCX2, donutCY, donutR, usiaSegs, 'total', totalWarga);
+
+      const legendX1 = donutCX1 + donutR + 10;
+      const legendX2 = donutCX2 + donutR + 10;
+      const legendItems1 = [
+        { label: 'Sehat', value: sehat, color: [...cHijau] },
+        { label: 'Perlu Pemantauan', value: perluPemantauan, color: [...cKuning] },
+        { label: 'Perlu Rujukan', value: perluRujukan, color: [...cMerah] },
+      ];
+      const legendItems2 = [
+        { label: 'Remaja (<18)', value: remaja, color: [...cPadi] },
+        { label: 'Dewasa (18-59)', value: dewasa, color: [...cHijau] },
+        { label: 'Lansia (>=60)', value: lansia, color: [130, 130, 130] },
+      ];
+      legendItems1.forEach((item, i) => {
+        const ly = donutCY - 12 + i * 10;
+        pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
+        pdf.circle(legendX1, ly, 1.5, 'F');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100);
+        pdf.text(item.label, legendX1 + 4, ly + 0.8);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(40);
+        pdf.text(String(item.value), legendX1 + 4, ly + 5);
+        pdf.setFont('helvetica', 'normal');
+      });
+      legendItems2.forEach((item, i) => {
+        const ly = donutCY - 12 + i * 10;
+        pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
+        pdf.circle(legendX2, ly, 1.5, 'F');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100);
+        pdf.text(item.label, legendX2 + 4, ly + 0.8);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(40);
+        pdf.text(String(item.value), legendX2 + 4, ly + 5);
+        pdf.setFont('helvetica', 'normal');
+      });
+      pdf.setTextColor(0);
+
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Distribusi Status', mx, y - 2);
+      pdf.text('Distribusi Usia', W / 2, y - 2);
+      pdf.setFont('helvetica', 'normal');
+      y += 65;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Pemeriksaan per Bulan', mx, y);
+      y += 6;
+      if (monthlyData.length > 0) {
+        const barAreaW = W - mx * 2;
+        const barW = Math.min(16, (barAreaW - (monthlyData.length - 1) * 4) / monthlyData.length);
+        const barH = 35;
+        monthlyData.forEach(([month, count], i) => {
+          const bx = mx + i * (barW + 4);
+          const pct = maxMonthly > 0 ? count / maxMonthly : 0;
+          const bh = Math.max(pct * barH, 1);
+          pdf.setFillColor(31, 78, 74);
+          pdf.roundedRect(bx, y + barH - bh, barW, bh, 1, 1, 'F');
+          pdf.setFontSize(7);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(40);
+          pdf.text(String(count), bx + barW / 2, y + barH - bh - 2, { align: 'center' });
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(6);
+          pdf.setTextColor(120);
+          const monthLabel = new Date(month + '-01').toLocaleDateString('id-ID', { month: 'short' });
+          pdf.text(monthLabel, bx + barW / 2, y + barH + 4, { align: 'center' });
+        });
+        y += barH + 12;
+      } else {
+        pdf.setFontSize(8);
+        pdf.setTextColor(150);
+        pdf.text('Belum ada data', mx + 40, y + 15);
+        pdf.setTextColor(0);
+        y += 30;
+      }
+
+      const riskItems = [
+        { name: 'Hipertensi', count: hipertensi, color: [...cMerah] },
+        { name: 'Diabetes', count: diabetes, color: [...cMerah] },
+        { name: 'Kolesterol Tinggi', count: kolesterolTinggi, color: [...cKuning] },
+        { name: 'Obesitas', count: obesitas, color: [...cKuning] },
+      ];
+      const riskBarW = 80;
+      riskItems.forEach((item, i) => {
+        const ry = y + i * 10;
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(40);
+        pdf.text(item.name, mx, ry + 3);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(String(item.count), mx + riskBarW + 20, ry + 3);
+        drawBar(mx + riskBarW + 30, ry, 50, 5, totalWarga > 0 ? item.count / totalWarga : 0, item.color);
+      });
+      pdf.setTextColor(0);
+      y += riskItems.length * 10 + 10;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Data Pemeriksaan Terbaru', mx, y);
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(120);
+      pdf.text(`${filtered.length} data`, W - mx, y, { align: 'right' });
+      pdf.setTextColor(0);
+      y += 6;
+
+      const cols = ['NIK', 'Usia', 'JK', 'BB/TB', 'TD', 'GDS', 'Tanggal', 'Status'];
+      const colW = [30, 12, 10, 18, 20, 14, 22, 24];
+      let colX = mx;
+      pdf.setFillColor(245, 245, 240);
+      pdf.rect(mx, y, W - mx * 2, 6, 'F');
+      pdf.setFontSize(6);
+      pdf.setFont('helvetica', 'bold');
+      cols.forEach((col, i) => {
+        pdf.text(col, colX + 1, y + 4);
+        colX += colW[i];
+      });
+      y += 6;
+      pdf.setFont('helvetica', 'normal');
+
+      for (const d of recentData) {
+        if (y > H - 20) { pdf.addPage(); y = 20; }
+        const usia = hitungUsia(d.tanggal_lahir, new Date());
+        const row = [d.nik, `${usia} th`, d.jenis_kelamin, `${d.berat_badan}/${d.tinggi_badan}`, `${d.td_sistol}/${d.td_diastol}`, `${d.gds}`, d.tanggal_periksa, d.catatan || '-'];
+        colX = mx;
+        pdf.setFontSize(6);
+        pdf.setTextColor(40);
+        row.forEach((cell, i) => {
+          if (i === 7) {
+            pdf.setFont('helvetica', 'bold');
+            if (cell === 'SEHAT') pdf.setTextColor(31, 78, 74);
+            else if (cell === 'PERLU PEMANTAUAN') pdf.setTextColor(180, 140, 30);
+            else if (cell === 'PERLU RUJUKAN') pdf.setTextColor(185, 60, 55);
+          }
+          pdf.text(String(cell).substring(0, 18), colX + 1, y + 3.5);
+          if (i === 7) pdf.setFont('helvetica', 'normal');
+          colX += colW[i];
+        });
+        pdf.setTextColor(0);
+        pdf.setDrawColor(230, 230, 230);
+        pdf.line(mx, y + 5, W - mx, y + 5);
+        y += 5.5;
+      }
+
+      pdf.setFontSize(7);
+      pdf.setTextColor(150);
+      pdf.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, mx, H - 10);
+
+      pdf.save(`rekap-desa-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error('PDF export error:', err);
+      alert('Gagal membuat PDF. Silakan coba lagi.');
     } finally {
       setExportingPDF(false);
     }
@@ -356,7 +616,7 @@ export default function RekapPage() {
             )}
           </div>
         )}
-        <main ref={dashboardRef} className="space-y-5">
+        <main className="space-y-5">
           {/* ─── Stat Cards (clickable) ─── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <button onClick={() => setActiveStatus('all')} className="bg-white rounded-xl border border-[var(--color-garis)] p-4 hover:shadow-md transition-shadow text-left">
