@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
+import useSessionTimeout from '@/hooks/useSessionTimeout';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [showSidebar, setShowSidebar] = useState(false);
   const pathname = usePathname();
+  useSessionTimeout();
 
   // Close sidebar on route change
   useEffect(() => {
