@@ -351,10 +351,8 @@ export default function DaftarPage() {
                 const isExpanded = expandedId === d.id;
                 const isRujukan = d.catatan?.includes('PERLU RUJUKAN');
                 const isPemantauan = d.catatan?.includes('PERLU PEMANTAUAN');
-                const isSehat = !isRujukan && !isPemantauan;
                 const imtKlas = klasifikasiIMT(d.berat_badan, d.tinggi_badan);
                 const tdKlas = klasifikasiTD(d.td_sistol, d.td_diastol);
-                const gdsKlas = klasifikasiGulaDarah(d.gds, d.jenis_gula_darah || 'sewaktu');
 
                 const rowBg = isRujukan
                   ? 'bg-[var(--color-merah-risiko-bg)]/30'

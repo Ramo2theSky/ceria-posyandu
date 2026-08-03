@@ -1,32 +1,34 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Aurora from '@/components/Aurora/Aurora';
 import { supabase } from '@/lib/supabase';
 
 const REMEMBER_KEY = 'ceria_remember_me';
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
+function getInitialRemember() {
+  if (typeof window === 'undefined') return { email: '', remember: false };
+  try {
     const saved = localStorage.getItem(REMEMBER_KEY);
     if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setEmail(data.email || '');
-        setRememberMe(true);
-      } catch {}
+      const data = JSON.parse(saved);
+      return { email: data.email || '', remember: true };
     }
-  }, []);
+  } catch {}
+  return { email: '', remember: false };
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+  const initialRemember = getInitialRemember();
+  const [email, setEmail] = useState(initialRemember.email);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(initialRemember.remember);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

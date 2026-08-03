@@ -42,17 +42,6 @@ function IconShell({ children, tone }: { children: React.ReactNode; tone: 'teal'
   );
 }
 
-function DashboardIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M4 6h7v7H4z" />
-      <path d="M13 6h7v4h-7z" />
-      <path d="M13 12h7v6h-7z" />
-      <path d="M4 15h7v3H4z" />
-    </svg>
-  );
-}
-
 function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -95,30 +84,11 @@ function PlusIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function BellIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M15 17H5a2 2 0 0 0 2-2v-4a5 5 0 1 1 10 0v4a2 2 0 0 0 2 2z" />
-      <path d="M10 19a2 2 0 0 0 4 0" />
-    </svg>
-  );
-}
-
 function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
-
-function LogOutIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M10 17l5-5-5-5" />
-      <path d="M15 12H3" />
-      <path d="M21 3v18" />
     </svg>
   );
 }
@@ -167,8 +137,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [showLog, setShowLog] = useState(false);
-  const [activityLog, setActivityLog] = useState<{ id: string; user_email: string; action: string; target_nik: string; detail: string; created_at: string }[]>([]);
-  const [logLoading, setLogLoading] = useState(false);
+  const [activityLog] = useState<{ id: string; user_email: string; action: string; target_nik: string; detail: string; created_at: string }[]>([]);
+  const [logLoading] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     totalWarga: 0,
     pemeriksaanBulanIni: 0,
@@ -258,36 +228,9 @@ export default function DashboardPage() {
     { href: '/recycle-bin', title: 'Recycle Bin', description: 'Lihat dan pulihkan data yang terhapus.', tone: 'red' },
   ], []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
-  const toggleLog = async () => {
-    if (showLog) {
-      setShowLog(false);
-      return;
-    }
-    setShowLog(true);
-    setLogLoading(true);
-    const { data } = await supabase
-      .from('activity_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20);
-    setActivityLog(data || []);
-    setLogLoading(false);
-  };
-
   if (loading || !user) return null;
 
   const displayName = user.user_metadata?.nama || user.email || 'Pengguna';
-  const initials = displayName
-    .split(' ')
-    .map((part) => part.charAt(0))
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
     <AppShell>

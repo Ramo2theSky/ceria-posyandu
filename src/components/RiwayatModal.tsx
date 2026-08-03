@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiwayatPemeriksaan, getStatusBg } from '@/lib/riwayat';
-import { klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, type JenisGulaDarah } from '@/lib/klasifikasi';
+import { klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah } from '@/lib/klasifikasi';
 
 interface RiwayatModalProps {
   riwayat: RiwayatPemeriksaan[];
@@ -21,6 +21,15 @@ function MetricDot({ status }: { status: 'ok' | 'warn' | 'risk' }) {
 export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
   const sorted = [...riwayat].sort((a, b) => a.tanggal_periksa.localeCompare(b.tanggal_periksa));
   const latest = sorted[sorted.length - 1];
+
+  const [usiaSaatIni, setUsiaSaatIni] = useState<number | null>(null);
+  useEffect(() => {
+    if (!latest?.tanggal_lahir) {
+      setUsiaSaatIni(null);
+      return;
+    }
+    setUsiaSaatIni(Math.floor((Date.now() - new Date(latest.tanggal_lahir).getTime()) / (365.25 * 24 * 60 * 60 * 1000)));
+  }, [latest?.tanggal_lahir]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -48,7 +57,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
             <div className="bg-white rounded-xl border border-[var(--color-garis)] p-3 text-center">
               <p className="text-[10px] text-[var(--color-tinta-lembut)]">Usia Saat Ini</p>
               <p className="text-lg font-bold text-[var(--color-tinta)]">
-                {latest.tanggal_lahir ? Math.floor((Date.now() - new Date(latest.tanggal_lahir).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : '-'} th
+                {usiaSaatIni !== null ? `${usiaSaatIni} th` : '-'}
               </p>
             </div>
             <div className="bg-white rounded-xl border border-[var(--color-garis)] p-3 text-center">

@@ -242,7 +242,6 @@ function WargaCard({
   const lp = klasifikasiLP(d.lingkar_pinggang, d.jenis_kelamin);
 
   const badgeClass = (s: string) => s === 'ok' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)]' : s === 'warn' ? 'bg-[var(--color-kuning-warn-bg)] text-[var(--color-kuning-warn)]' : 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)]';
-  const dotClass = (s: string) => s === 'ok' ? 'bg-[var(--color-hijau-ok)]' : s === 'warn' ? 'bg-[var(--color-kuning-warn)]' : 'bg-[var(--color-merah-risiko)]';
 
   const statusColor = d.catatan === 'SEHAT' ? 'var(--color-hijau-ok)' : d.catatan === 'PERLU PEMANTAUAN' ? 'var(--color-kuning-warn)' : 'var(--color-merah-risiko)';
 

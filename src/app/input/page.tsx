@@ -75,12 +75,14 @@ export default function InputPage() {
   useEffect(() => {
     if (nikTimerRef.current) clearTimeout(nikTimerRef.current);
     if (identitas.nik.length !== 16) {
-      setNikCheck(null);
-      setCheckingNIK(false);
+      nikTimerRef.current = setTimeout(() => {
+        setNikCheck(null);
+        setCheckingNIK(false);
+      }, 0);
       return;
     }
-    setCheckingNIK(true);
     nikTimerRef.current = setTimeout(async () => {
+      setCheckingNIK(true);
       try {
         const result = await cekNIK(identitas.nik);
         setNikCheck(result);

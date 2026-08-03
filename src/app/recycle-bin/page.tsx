@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
 import { maskNIK } from '@/lib/formatters';
@@ -26,7 +25,6 @@ interface DeletedRecord {
 }
 
 export default function RecycleBinPage() {
-  const router = useRouter();
   const [data, setData] = useState<DeletedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -35,22 +33,21 @@ export default function RecycleBinPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const { data: result, error } = await supabase
+        .from('pemeriksaan')
+        .select('*')
+        .not('dihapus_pada', 'is', null)
+        .order('dihapus_pada', { ascending: false });
+
+      if (!error && result) {
+        setData(result as DeletedRecord[]);
+      }
+      setLoading(false);
+    }
     loadData();
   }, []);
-
-  async function loadData() {
-    setLoading(true);
-    const { data: result, error } = await supabase
-      .from('pemeriksaan')
-      .select('*')
-      .not('dihapus_pada', 'is', null)
-      .order('dihapus_pada', { ascending: false });
-
-    if (!error && result) {
-      setData(result as DeletedRecord[]);
-    }
-    setLoading(false);
-  }
 
   const filtered = useMemo(() => {
     if (!search) return data;

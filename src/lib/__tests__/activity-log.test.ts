@@ -1,5 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+interface MockUser {
+  id: string;
+  email: string;
+}
+
+interface MockAuth {
+  getUser: ReturnType<typeof vi.fn>;
+}
+
+interface MockFrom {
+  insert: ReturnType<typeof vi.fn>;
+}
+
+interface MockSupabase {
+  auth: MockAuth;
+  from: ReturnType<(table: string) => MockFrom>;
+}
+
 vi.mock('../supabase', () => ({
   supabase: {
     auth: {
@@ -8,11 +26,13 @@ vi.mock('../supabase', () => ({
     from: vi.fn(() => ({
       insert: vi.fn(),
     })),
-  },
+  } satisfies MockSupabase,
 }));
 
 import { logActivity } from '../activity-log';
 import { supabase } from '../supabase';
+
+const mockSupabase = vi.mocked(supabase);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -20,22 +40,22 @@ beforeEach(() => {
 
 describe('logActivity', () => {
   it('tidak log jika user tidak login', async () => {
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({ data: { user: null }, error: null });
+    mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
     await logActivity('insert', '1234567890123456', 'Test');
-    expect(supabase.from).not.toHaveBeenCalled();
+    expect(mockSupabase.from).not.toHaveBeenCalled();
   });
 
   it('log insert activity', async () => {
     const mockInsert = vi.fn();
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
-      data: { user: { id: 'u1', email: 'test@test.com' } as any },
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'test@test.com' } as MockUser },
       error: null,
     });
-    vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert } as any);
+    mockSupabase.from.mockReturnValue({ insert: mockInsert } as MockFrom);
 
     await logActivity('insert', '1234567890123456', 'Data warga disimpan');
 
-    expect(supabase.from).toHaveBeenCalledWith('activity_log');
+    expect(mockSupabase.from).toHaveBeenCalledWith('activity_log');
     expect(mockInsert).toHaveBeenCalledWith({
       user_id: 'u1',
       user_email: 'test@test.com',
@@ -47,11 +67,11 @@ describe('logActivity', () => {
 
   it('log delete activity', async () => {
     const mockInsert = vi.fn();
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
-      data: { user: { id: 'u2', email: 'admin@test.com' } as any },
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'u2', email: 'admin@test.com' } as MockUser },
       error: null,
     });
-    vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert } as any);
+    mockSupabase.from.mockReturnValue({ insert: mockInsert } as MockFrom);
 
     await logActivity('delete', '1234567890123456', 'Data dihapus');
 
@@ -65,13 +85,13 @@ describe('logActivity', () => {
   });
 
   it('tidak throw error jika insert gagal', async () => {
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
-      data: { user: { id: 'u1', email: 'test@test.com' } as any },
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'test@test.com' } as MockUser },
       error: null,
     });
-    vi.mocked(supabase.from).mockReturnValue({
+    mockSupabase.from.mockReturnValue({
       insert: vi.fn().mockRejectedValue(new Error('DB error')),
-    } as any);
+    } as MockFrom);
 
     await expect(logActivity('insert', '12345', 'Test')).resolves.toBeUndefined();
   });

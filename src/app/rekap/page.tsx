@@ -571,21 +571,20 @@ function DonutChart({ data, total }: { data: { value: number; color: string }[];
   const circumference = 2 * Math.PI * radius;
 
   const filtered = data.filter(d => d.value > 0);
-  let offset = 0;
-  const segments = filtered.map((d) => {
+  const segments = filtered.reduce<{ d: typeof filtered[0]; len: number; offset: number }[]>((acc, d) => {
     const pct = total > 0 ? d.value / total : 0;
     const len = pct * circumference;
-    const seg = { ...d, len, offset };
-    offset += len;
-    return seg;
-  });
+    const prevOffset = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].len : 0;
+    acc.push({ d, len, offset: prevOffset });
+    return acc;
+  }, []);
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--color-kertas-dalam)" strokeWidth={strokeWidth} />
         {segments.map((seg, i) => (
-          <circle key={i} cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={seg.color} strokeWidth={strokeWidth} strokeDasharray={`${seg.len} ${circumference - seg.len}`} strokeDashoffset={-seg.offset} />
+          <circle key={i} cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={seg.d.color} strokeWidth={strokeWidth} strokeDasharray={`${seg.len} ${circumference - seg.len}`} strokeDashoffset={-seg.offset} />
         ))}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
