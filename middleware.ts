@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-const protectedPaths = ['/dashboard', '/input', '/daftar', '/import', '/recycle-bin'];
+const protectedPaths = ['/dashboard', '/input', '/daftar', '/import', '/recycle-bin', '/rekap'];
 
 function isProtectedPath(pathname: string) {
   return protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -61,5 +61,7 @@ export const config = {
     '/import/:path*',
     '/recycle-bin',
     '/recycle-bin/:path*',
+    '/rekap',
+    '/rekap/:path*',
   ],
 };
