@@ -376,10 +376,10 @@ export default function RekapPage() {
         <main className="space-y-5">
           {/* ─── Stat Cards (clickable) ─── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <button onClick={() => setActiveStatus('all')} className="bg-white rounded-xl border border-[var(--color-garis)] p-4 hover:shadow-md transition-shadow text-left">
+            <div className="bg-white rounded-xl border border-[var(--color-garis)] p-4 text-left">
               <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1">Total Warga</p>
               <p className="text-3xl font-bold text-[var(--color-tinta)]">{totalWarga}</p>
-            </button>
+            </div>
             <button onClick={() => setActiveStatus('SEHAT')} className="bg-white rounded-xl border border-[var(--color-hijau-ok)]/20 p-4 hover:shadow-md transition-shadow text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-[var(--color-hijau-ok)]" />
