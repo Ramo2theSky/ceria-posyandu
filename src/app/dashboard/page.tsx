@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
+import { isSuperAdmin, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import SpotlightCard from '@/components/ReactBits/SpotlightCard';
 import AppShell from '@/components/AppShell';
 
@@ -182,7 +182,6 @@ export default function DashboardPage() {
 
     initAuth();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   useEffect(() => {
@@ -192,7 +191,6 @@ export default function DashboardPage() {
 
     async function loadStats() {
       const admin = await isSuperAdmin();
-      const kaderPosyanduId = admin ? null : await getCurrentPosyanduId();
 
       const today = new Date();
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
@@ -202,8 +200,6 @@ export default function DashboardPage() {
         let query = supabase.from(table).select('id', { count: 'exact', head: true }).is('dihapus_pada', null);
         if (admin && selectedPosyanduId) {
           query = query.eq('posyandu_id', selectedPosyanduId);
-        } else if (!admin && kaderPosyanduId) {
-          query = query.eq('posyandu_id', kaderPosyanduId);
         }
         return query;
       };

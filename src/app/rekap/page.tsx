@@ -6,7 +6,7 @@ import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasif
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
-import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
+import { isSuperAdmin, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
@@ -83,10 +83,7 @@ export default function RekapPage() {
           .select('*')
           .is('dihapus_pada', null);
 
-        if (!admin) {
-          const posId = await getCurrentPosyanduId();
-          if (posId) query = query.eq('posyandu_id', posId);
-        } else {
+        if (admin) {
           const list = await getPosyanduList();
           if (!cancelled) setPosyanduList(list);
         }
