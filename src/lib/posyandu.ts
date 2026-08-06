@@ -18,9 +18,16 @@ export async function isSuperAdmin(): Promise<boolean> {
 export async function getPosyanduList(): Promise<Posyandu[]> {
   const { data } = await supabase
     .from('posyandu')
-    .select('*')
-    .order('nama');
-  return data || [];
+    .select('*');
+  
+  if (!data) return [];
+  
+  // Sort by number in name (Mawar 1, Mawar 2, ... Mawar 5)
+  return data.sort((a, b) => {
+    const numA = parseInt(a.nama.match(/\d+/)?.[0] || '0');
+    const numB = parseInt(b.nama.match(/\d+/)?.[0] || '0');
+    return numA - numB;
+  });
 }
 
 export async function getPosyanduName(id: string): Promise<string> {
