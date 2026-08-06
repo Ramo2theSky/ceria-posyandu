@@ -17,9 +17,7 @@ export function klasifikasiIMT(bb: number, tb: number): HasilKlasifikasi {
 }
 
 export function klasifikasiTD(sistol: number, diastol: number): HasilKlasifikasi {
-  if (sistol >= 140 || diastol >= 90) return { label: 'Hipertensi Tk.2', status: 'risk', keterangan: 'Rujuk, kemungkinan terapi obat' };
-  if (sistol >= 130 || diastol >= 80) return { label: 'Hipertensi Tk.1', status: 'warn', keterangan: 'Konsultasi dokter' };
-  if (sistol >= 120) return { label: 'Elevasi', status: 'warn', keterangan: 'Perlu pemantauan' };
+  if (sistol >= 130 || diastol >= 90) return { label: 'Hipertensi', status: 'risk', keterangan: 'Rujuk, kemungkinan terapi obat' };
   return { label: 'Normal', status: 'ok', keterangan: 'Optimal' };
 }
 

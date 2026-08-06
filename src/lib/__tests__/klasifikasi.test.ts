@@ -37,27 +37,33 @@ describe('klasifikasiIMT', () => {
 });
 
 describe('klasifikasiTD', () => {
-  it('Normal jika sistol < 120 dan diastol < 80', () => {
+  it('Normal jika sistol < 130 dan diastol < 90', () => {
     const result = klasifikasiTD(110, 70);
     expect(result.label).toBe('Normal');
     expect(result.status).toBe('ok');
   });
 
-  it('Elevasi jika sistol >= 120', () => {
+  it('Normal jika sistol 120-an dan diastol < 90', () => {
     const result = klasifikasiTD(125, 75);
-    expect(result.label).toBe('Elevasi');
-    expect(result.status).toBe('warn');
+    expect(result.label).toBe('Normal');
+    expect(result.status).toBe('ok');
   });
 
-  it('Hipertensi Tk.1 jika sistol >= 130 atau diastol >= 80', () => {
+  it('Hipertensi jika sistol >= 130', () => {
     const result = klasifikasiTD(135, 85);
-    expect(result.label).toBe('Hipertensi Tk.1');
-    expect(result.status).toBe('warn');
+    expect(result.label).toBe('Hipertensi');
+    expect(result.status).toBe('risk');
   });
 
-  it('Hipertensi Tk.2 jika sistol >= 140 atau diastol >= 90', () => {
+  it('Hipertensi jika diastol >= 90', () => {
+    const result = klasifikasiTD(120, 92);
+    expect(result.label).toBe('Hipertensi');
+    expect(result.status).toBe('risk');
+  });
+
+  it('Hipertensi jika sistol >= 140 dan diastol >= 90', () => {
     const result = klasifikasiTD(150, 95);
-    expect(result.label).toBe('Hipertensi Tk.2');
+    expect(result.label).toBe('Hipertensi');
     expect(result.status).toBe('risk');
   });
 });
@@ -144,7 +150,7 @@ describe('statusKeseluruhan', () => {
   it('PERLU PEMANTAUAN jika ada status warn', () => {
     const results = [
       { label: 'Normal', status: 'ok' as const, keterangan: '' },
-      { label: 'Elevasi', status: 'warn' as const, keterangan: '' },
+      { label: 'Kurus', status: 'warn' as const, keterangan: '' },
     ];
     expect(statusKeseluruhan(results)).toBe('PERLU PEMANTAUAN');
   });
