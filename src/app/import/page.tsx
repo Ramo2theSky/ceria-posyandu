@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { parseBarisCSV, BarisCSV } from '@/lib/csv-parser';
 import { supabase } from '@/lib/supabase';
+import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import AppShell from '@/components/AppShell';
 
 type ImportNotice = {
@@ -35,6 +36,32 @@ export default function ImportPage() {
   const [notice, setNotice] = useState<ImportNotice | null>(null);
   const [fileName, setFileName] = useState('');
   const [importDate, setImportDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Posyandu state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
+  const [selectedPosyanduId, setSelectedPosyanduId] = useState<string>('');
+  const [posyanduLoaded, setPosyanduLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadPosyandu() {
+      try {
+        const admin = await isSuperAdmin();
+        setIsAdmin(admin);
+        if (admin) {
+          const list = await getPosyanduList();
+          setPosyanduList(list);
+          if (list.length > 0) setSelectedPosyanduId(list[0].id);
+        } else {
+          const posId = await getCurrentPosyanduId();
+          setSelectedPosyanduId(posId || '');
+        }
+      } finally {
+        setPosyanduLoaded(true);
+      }
+    }
+    loadPosyandu();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -168,6 +195,7 @@ export default function ImportPage() {
             tanggal_periksa: importDate,
             catatan: keseluruhan,
             dibuat_oleh: userId,
+            posyandu_id: selectedPosyanduId || null,
           };
         });
 
@@ -219,6 +247,20 @@ export default function ImportPage() {
               className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
             />
           </div>
+          {isAdmin && posyanduList.length > 0 && posyanduLoaded && (
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Posyandu</label>
+              <select
+                value={selectedPosyanduId}
+                onChange={(e) => setSelectedPosyanduId(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+              >
+                {posyanduList.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nama}</option>
+                ))}
+              </select>
+            </div>
+          )}
           {notice && (
             <div
               className={`mb-4 p-3 rounded-xl text-sm border ${notice.kind === 'success' ? 'bg-[var(--color-hijau-ok-bg)] text-[var(--color-hijau-ok)] border-[var(--color-hijau-ok)]/20' : notice.kind === 'error' ? 'bg-[var(--color-merah-risiko-bg)] text-[var(--color-merah-risiko)] border-[var(--color-merah-risiko)]/20' : 'bg-[var(--color-kertas-dalam)] text-[var(--color-tinta)] border-[var(--color-garis)]'}`}

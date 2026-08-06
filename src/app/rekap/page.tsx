@@ -6,12 +6,14 @@ import { hitungUsia, klasifikasiIMT, klasifikasiTD, klasifikasiGulaDarah, klasif
 import { maskNIK } from '@/lib/formatters';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type RiwayatPemeriksaan } from '@/lib/riwayat';
+import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
 interface Pemeriksaan {
   id: string;
   nik: string;
+  nama_lengkap: string | null;
   tanggal_lahir: string;
   jenis_kelamin: 'L' | 'P';
   no_telepon: string | null;
@@ -26,6 +28,7 @@ interface Pemeriksaan {
   kolesterol_total: number | null;
   tanggal_periksa: string;
   catatan: string;
+  posyandu_id: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -49,6 +52,11 @@ export default function RekapPage() {
   const [riwayatData, setRiwayatData] = useState<RiwayatPemeriksaan[] | null>(null);
   const [loadingRiwayat, setLoadingRiwayat] = useState(false);
 
+  // Posyandu state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
+  const [filterPosyandu, setFilterPosyandu] = useState<string>('');
+
   const handleShowRiwayat = useCallback(async (nik: string) => {
     setLoadingRiwayat(true);
     try {
@@ -67,10 +75,23 @@ export default function RekapPage() {
     let cancelled = false;
     async function load() {
       try {
-        const { data: result, error } = await supabase
+        const admin = await isSuperAdmin();
+        if (!cancelled) setIsAdmin(admin);
+
+        let query = supabase
           .from('pemeriksaan')
           .select('*')
           .is('dihapus_pada', null);
+
+        if (!admin) {
+          const posId = await getCurrentPosyanduId();
+          if (posId) query = query.eq('posyandu_id', posId);
+        } else {
+          const list = await getPosyanduList();
+          if (!cancelled) setPosyanduList(list);
+        }
+
+        const { data: result, error } = await query;
         if (error) throw error;
         if (!cancelled) setData(result || []);
       } catch {
@@ -85,6 +106,8 @@ export default function RekapPage() {
 
   const filtered = useMemo(() => {
     return data.filter(d => {
+      // Filter by posyandu for admin
+      if (isAdmin && filterPosyandu && d.posyandu_id !== filterPosyandu) return false;
       const usia = hitungUsia(d.tanggal_lahir, new Date());
       const kategoriUsia = usia < 18 ? 'remaja' : usia < 60 ? 'dewasa' : 'lansia';
       if (filterUsia.length > 0 && !filterUsia.includes(kategoriUsia)) return false;
@@ -93,7 +116,7 @@ export default function RekapPage() {
       if (dateTo && d.tanggal_periksa > dateTo) return false;
       return true;
     });
-  }, [data, filterUsia, filterStatus, dateFrom, dateTo]);
+  }, [data, filterUsia, filterStatus, dateFrom, dateTo, isAdmin, filterPosyandu]);
 
   const statusFiltered = useMemo(() => {
     if (!activeStatus) return [];
@@ -282,6 +305,23 @@ export default function RekapPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Posyandu filter for admin */}
+              {isAdmin && posyanduList.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Posyandu</p>
+                  <select
+                    value={filterPosyandu}
+                    onChange={(e) => setFilterPosyandu(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[var(--color-garis)] rounded-lg text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+                  >
+                    <option value="">Semua Posyandu</option>
+                    {posyanduList.map((p) => (
+                      <option key={p.id} value={p.id}>{p.nama}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <p className="text-xs font-semibold text-[var(--color-tinta-lembut)] mb-2">Kelompok Usia</p>
                 <div className="space-y-2">

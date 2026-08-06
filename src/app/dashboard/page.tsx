@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import SpotlightCard from '@/components/ReactBits/SpotlightCard';
 import AppShell from '@/components/AppShell';
 
@@ -146,6 +147,12 @@ export default function DashboardPage() {
     perluRujukan: 0,
   });
 
+  // Posyandu state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
+  const [selectedPosyanduId, setSelectedPosyanduId] = useState<string>('');
+  const [posyanduStats, setPosyanduStats] = useState<{ id: string; nama: string; count: number }[]>([]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -165,15 +172,38 @@ export default function DashboardPage() {
       });
       setLoading(false);
 
+      const admin = await isSuperAdmin();
+      if (!cancelled) setIsAdmin(admin);
+
+      let posyanduId = '';
+      if (admin) {
+        const list = await getPosyanduList();
+        if (!cancelled) setPosyanduList(list);
+        if (list.length > 0) {
+          posyanduId = selectedPosyanduId || list[0].id;
+          if (!cancelled) setSelectedPosyanduId(posyanduId);
+        }
+      } else {
+        posyanduId = await getCurrentPosyanduId() || '';
+      }
+
       const today = new Date();
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
       const todayStr = today.toISOString().split('T')[0];
 
+      // Base query with posyandu filter for non-admin
+      const baseQuery = (table: string) => {
+        let query = supabase.from(table).select('id', { count: 'exact', head: true }).is('dihapus_pada', null);
+        if (!admin && posyanduId) query = query.eq('posyandu_id', posyanduId);
+        if (admin && selectedPosyanduId) query = query.eq('posyandu_id', selectedPosyanduId);
+        return query;
+      };
+
       const [totalResult, monthResult, todayResult, rujukanResult] = await Promise.all([
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null),
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).gte('tanggal_periksa', monthStart),
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).eq('tanggal_periksa', todayStr),
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).ilike('catatan', '%PERLU RUJUKAN%'),
+        baseQuery('pemeriksaan'),
+        baseQuery('pemeriksaan').gte('tanggal_periksa', monthStart),
+        baseQuery('pemeriksaan').eq('tanggal_periksa', todayStr),
+        baseQuery('pemeriksaan').ilike('catatan', '%PERLU RUJUKAN%'),
       ]);
 
       if (cancelled) return;
@@ -184,33 +214,32 @@ export default function DashboardPage() {
         pemeriksaanHariIni: todayResult.count ?? 0,
         perluRujukan: rujukanResult.count ?? 0,
       });
+
+      // Load per-posyandu stats for admin
+      if (admin) {
+        const list = posyanduList.length > 0 ? posyanduList : await getPosyanduList();
+        const statsPromises = list.map(async (p) => {
+          const { count } = await supabase
+            .from('pemeriksaan')
+            .select('id', { count: 'exact', head: true })
+            .is('dihapus_pada', null)
+            .eq('posyandu_id', p.id);
+          return { id: p.id, nama: p.nama, count: count ?? 0 };
+        });
+        const statsResults = await Promise.all(statsPromises);
+        if (!cancelled) setPosyanduStats(statsResults);
+      }
+
       setStatsLoading(false);
-    }
-
-    async function loadStatsOnly() {
-      const today = new Date();
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-      const todayStr = today.toISOString().split('T')[0];
-
-      const [totalResult, monthResult, todayResult, rujukanResult] = await Promise.all([
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null),
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).gte('tanggal_periksa', monthStart),
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).eq('tanggal_periksa', todayStr),
-        supabase.from('pemeriksaan').select('id', { count: 'exact', head: true }).is('dihapus_pada', null).ilike('catatan', '%PERLU RUJUKAN%'),
-      ]);
-
-      setStats({
-        totalWarga: totalResult.count ?? 0,
-        pemeriksaanBulanIni: monthResult.count ?? 0,
-        pemeriksaanHariIni: todayResult.count ?? 0,
-        perluRujukan: rujukanResult.count ?? 0,
-      });
     }
 
     loadUserAndStats();
 
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') loadStatsOnly();
+      if (document.visibilityState === 'visible') {
+        // Reload stats on visibility change
+        loadUserAndStats();
+      }
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
@@ -218,7 +247,7 @@ export default function DashboardPage() {
       cancelled = true;
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [router]);
+  }, [router, selectedPosyanduId, posyanduList]);
 
   const menuItems: MenuItem[] = useMemo(() => [
     { href: '/input', title: 'Input Data Warga', description: 'Tambah pemeriksaan baru dengan cepat.', tone: 'teal' },
@@ -284,6 +313,28 @@ export default function DashboardPage() {
             </div>
           </section>
 
+          {/* Posyandu filter for admin */}
+          {isAdmin && posyanduList.length > 0 && (
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Filter Posyandu</p>
+                  <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-900">Pilih posyandu untuk melihat data spesifik</h3>
+                </div>
+                <select
+                  value={selectedPosyanduId}
+                  onChange={(e) => setSelectedPosyanduId(e.target.value)}
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all"
+                >
+                  <option value="">Semua Posyandu</option>
+                  {posyanduList.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nama}</option>
+                  ))}
+                </select>
+              </div>
+            </section>
+          )}
+
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               tone="teal"
@@ -310,6 +361,35 @@ export default function DashboardPage() {
               value={statsLoading ? '...' : stats.perluRujukan.toString()}
             />
           </section>
+
+          {/* Posyandu comparison chart for admin */}
+          {isAdmin && posyanduStats.length > 0 && !selectedPosyanduId && (
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-md">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400 mb-4">Perbandingan per Posyandu</p>
+              <div className="space-y-3">
+                {posyanduStats.map((p) => {
+                  const maxCount = Math.max(...posyanduStats.map(s => s.count), 1);
+                  const percentage = (p.count / maxCount) * 100;
+                  return (
+                    <div key={p.id} className="flex items-center gap-4">
+                      <div className="w-48 text-sm text-slate-700 truncate" title={p.nama}>
+                        {p.nama.replace('Posyandu Dk. ', '')}
+                      </div>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-teal-500 rounded-full transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <div className="w-12 text-right text-sm font-semibold text-slate-900">
+                        {p.count}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           <section className="space-y-4">
             <div className="flex items-end justify-between gap-3">

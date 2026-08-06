@@ -7,6 +7,7 @@ import { validasiNIK, validasiTanggalLahir } from '@/lib/validasi';
 import { logActivity } from '@/lib/activity-log';
 import { supabase } from '@/lib/supabase';
 import { cekNIK, type CekNIKResult } from '@/lib/riwayat';
+import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
@@ -67,6 +68,12 @@ export default function InputPage() {
   const [showRiwayat, setShowRiwayat] = useState(false);
   const nikTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Posyandu state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
+  const [selectedPosyanduId, setSelectedPosyanduId] = useState<string>('');
+  const [posyanduLoaded, setPosyanduLoaded] = useState(false);
+
   const usia = identitas.tanggalLahir ? hitungUsia(identitas.tanggalLahir, new Date()) : 0;
   const peringatanRemaja = usia > 0 ? peringatanUsiaRemaja(usia) : null;
   const imt = identitas.jenisKelamin && pengukuran.beratBadan && pengukuran.tinggiBadan
@@ -108,6 +115,27 @@ export default function InputPage() {
     }, 500);
     return () => { if (nikTimerRef.current) clearTimeout(nikTimerRef.current); };
   }, [identitas.nik]);
+
+  // Load posyandu data
+  useEffect(() => {
+    async function loadPosyandu() {
+      try {
+        const admin = await isSuperAdmin();
+        setIsAdmin(admin);
+        if (admin) {
+          const list = await getPosyanduList();
+          setPosyanduList(list);
+          if (list.length > 0) setSelectedPosyanduId(list[0].id);
+        } else {
+          const posId = await getCurrentPosyanduId();
+          setSelectedPosyanduId(posId || '');
+        }
+      } finally {
+        setPosyanduLoaded(true);
+      }
+    }
+    loadPosyandu();
+  }, []);
 
   const validateStep1 = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -198,6 +226,7 @@ export default function InputPage() {
         tanggal_periksa: pengukuran.tanggalPeriksa,
         catatan: getHasil().keseluruhan,
         dibuat_oleh: authData.user.id,
+        posyandu_id: selectedPosyanduId || null,
       });
 
       if (error) throw error;
@@ -408,6 +437,22 @@ export default function InputPage() {
                   className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all resize-none"
                 />
               </div>
+
+              {/* Posyandu Selector (Super Admin only) */}
+              {isAdmin && posyanduList.length > 0 && posyanduLoaded && (
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Posyandu</label>
+                  <select
+                    value={selectedPosyanduId}
+                    onChange={(e) => setSelectedPosyanduId(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+                  >
+                    {posyanduList.map((p) => (
+                      <option key={p.id} value={p.id}>{p.nama}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {peringatanRemaja && (
                 <div className="px-4 py-3 rounded-xl bg-[var(--color-kuning-warn-bg)] border border-[var(--color-kuning-warn)]/20 text-sm text-[var(--color-kuning-warn)]">

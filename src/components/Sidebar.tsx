@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { isSuperAdmin, getPosyanduName } from '@/lib/posyandu';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: 'dashboard' },
@@ -63,13 +64,30 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState('Pengguna');
   const [initials, setInitials] = useState('PG');
+  const [posyanduName, setPosyanduName] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const name = data.user?.user_metadata?.nama || data.user?.email || 'Pengguna';
-      setDisplayName(name);
-      setInitials(name.split(' ').map((p: string) => p.charAt(0)).join('').slice(0, 2).toUpperCase());
-    });
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        const name = data.user.user_metadata?.nama || data.user.email || 'Pengguna';
+        setDisplayName(name);
+        setInitials(name.split(' ').map((p: string) => p.charAt(0)).join('').slice(0, 2).toUpperCase());
+
+        const admin = await isSuperAdmin();
+        setIsAdmin(admin);
+
+        if (!admin) {
+          const posId = data.user.user_metadata?.posyandu_id;
+          if (posId) {
+            const name = await getPosyanduName(posId);
+            setPosyanduName(name);
+          }
+        }
+      }
+    }
+    loadUser();
   }, []);
 
   const handleLogout = async () => {
@@ -131,7 +149,9 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
-            <p className="text-xs text-slate-500">Administrator</p>
+            <p className="text-xs text-slate-500">
+              {isAdmin ? 'Super Admin' : posyanduName || 'Kader Posyandu'}
+            </p>
           </div>
         </div>
         <button

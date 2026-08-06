@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
 import { maskNIK } from '@/lib/formatters';
 import { cekNIK, RiwayatPemeriksaan } from '@/lib/riwayat';
+import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
@@ -29,6 +30,7 @@ interface Pemeriksaan {
   tanggal_periksa: string;
   catatan: string;
   dibuat_pada: string;
+  posyandu_id: string | null;
 }
 
 type SortField = 'nik' | 'usia' | 'jenis_kelamin' | 'berat_badan' | 'tinggi_badan' | 'imt' | 'tanggal_periksa' | 'dibuat_pada' | 'catatan';
@@ -58,16 +60,33 @@ export default function DaftarPage() {
   const [riwayatData, setRiwayatData] = useState<RiwayatPemeriksaan[] | null>(null);
   const [riwayatLoading, setRiwayatLoading] = useState(false);
 
+  // Posyandu state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
+  const [filterPosyandu, setFilterPosyandu] = useState<string>('');
+
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const { data: result, error } = await supabase
+        const admin = await isSuperAdmin();
+        if (!cancelled) setIsAdmin(admin);
+
+        let query = supabase
           .from('pemeriksaan')
           .select('*')
-          .is('dihapus_pada', null)
-          .order('tanggal_periksa', { ascending: false });
+          .is('dihapus_pada', null);
+
+        if (!admin) {
+          const posId = await getCurrentPosyanduId();
+          if (posId) query = query.eq('posyandu_id', posId);
+        } else {
+          const list = await getPosyanduList();
+          if (!cancelled) setPosyanduList(list);
+        }
+
+        const { data: result, error } = await query.order('tanggal_periksa', { ascending: false });
 
         if (error) throw error;
         if (!cancelled) setData(result || []);
@@ -171,6 +190,8 @@ export default function DaftarPage() {
   };
 
   const filtered = data.filter((d) => {
+    // Filter by posyandu for admin
+    if (isAdmin && filterPosyandu && d.posyandu_id !== filterPosyandu) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return d.nik.includes(q) || d.nama_lengkap?.toLowerCase().includes(q) || d.tanggal_periksa.includes(q);
@@ -280,6 +301,18 @@ export default function DaftarPage() {
             className="flex-1 px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
             placeholder="Cari NIK, nama, atau tanggal..."
           />
+          {isAdmin && posyanduList.length > 0 && (
+            <select
+              value={filterPosyandu}
+              onChange={(e) => { setFilterPosyandu(e.target.value); setPage(1); }}
+              className="px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
+            >
+              <option value="">Semua Posyandu</option>
+              {posyanduList.map((p) => (
+                <option key={p.id} value={p.id}>{p.nama}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="flex items-center justify-between mb-3">
@@ -323,6 +356,11 @@ export default function DaftarPage() {
                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)]">
                   Nama
                 </th>
+                {isAdmin && (
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)]">
+                    Posyandu
+                  </th>
+                )}
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('usia')}>
                   Usia <SortIcon field="usia" sortField={sortField} sortDir={sortDir} />
                 </th>
@@ -379,6 +417,11 @@ export default function DaftarPage() {
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">{maskNIK(d.nik)}</td>
                       <td className="px-3 py-2 text-xs font-semibold">{d.nama_lengkap || '-'}</td>
+                      {isAdmin && (
+                        <td className="px-3 py-2 text-xs text-[var(--color-tinta-lembut)]">
+                          {posyanduList.find(p => p.id === d.posyandu_id)?.nama || '-'}
+                        </td>
+                      )}
                       <td className="px-3 py-2 text-center">{usia}</td>
                       <td className="px-3 py-2 text-center">{d.jenis_kelamin}</td>
                       <td className="px-3 py-2 text-right">{d.berat_badan}</td>
@@ -436,7 +479,7 @@ export default function DaftarPage() {
 
                       return (
                         <tr className="bg-[var(--color-kertas-dalam)]/70 border-t border-[var(--color-garis)]">
-                          <td colSpan={11} className="px-3 py-4 text-sm space-y-4">
+                          <td colSpan={isAdmin ? 12 : 11} className="px-3 py-4 text-sm space-y-4">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                               <div>
                                 <p className="text-[var(--color-tinta-lembut)] text-xs uppercase tracking-wide">NIK Penuh</p>
