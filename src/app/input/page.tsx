@@ -12,6 +12,7 @@ import AppShell from '@/components/AppShell';
 
 interface Identitas {
   nik: string;
+  namaLengkap: string;
   tanggalLahir: string;
   jenisKelamin: 'L' | 'P' | '';
   noHP: string;
@@ -42,6 +43,7 @@ export default function InputPage() {
   const [step, setStep] = useState(1);
   const [identitas, setIdentitas] = useState<Identitas>({
     nik: '',
+    namaLengkap: '',
     tanggalLahir: '',
     jenisKelamin: '',
     noHP: '',
@@ -91,6 +93,7 @@ export default function InputPage() {
           const td = result.dataTerakhir;
           setIdentitas(prev => ({
             ...prev,
+            namaLengkap: prev.namaLengkap || td.nama_lengkap || '',
             tanggalLahir: prev.tanggalLahir || td.tanggal_lahir,
             jenisKelamin: prev.jenisKelamin || td.jenis_kelamin,
             noHP: prev.noHP || td.no_telepon || '',
@@ -110,6 +113,7 @@ export default function InputPage() {
     const newErrors: Record<string, string> = {};
     const nikError = validasiNIK(identitas.nik);
     if (nikError) newErrors.nik = nikError.message;
+    if (!identitas.namaLengkap.trim()) newErrors.namaLengkap = 'Nama lengkap wajib diisi';
     const tglError = validasiTanggalLahir(identitas.tanggalLahir);
     if (tglError) newErrors.tanggalLahir = tglError.message;
     if (!identitas.jenisKelamin) newErrors.jenisKelamin = 'Pilih jenis kelamin';
@@ -178,6 +182,7 @@ export default function InputPage() {
 
       const { error } = await supabase.from('pemeriksaan').insert({
         nik: identitas.nik,
+        nama_lengkap: identitas.namaLengkap || null,
         tanggal_lahir: identitas.tanggalLahir,
         jenis_kelamin: identitas.jenisKelamin,
         no_telepon: identitas.noHP || null,
@@ -197,9 +202,10 @@ export default function InputPage() {
 
       if (error) throw error;
 
-      // Backfill: if this NIK now has phone/address, update all previous null records
-      if (identitas.noHP || identitas.alamat) {
+      // Backfill: if this NIK now has phone/address/name, update all previous null records
+      if (identitas.namaLengkap || identitas.noHP || identitas.alamat) {
         const updates: Record<string, string> = {};
+        if (identitas.namaLengkap) updates.nama_lengkap = identitas.namaLengkap;
         if (identitas.noHP) updates.no_telepon = identitas.noHP;
         if (identitas.alamat) updates.alamat = identitas.alamat;
         await supabase
@@ -321,6 +327,18 @@ export default function InputPage() {
                 </div>
               )}
 
+              {/* Nama Lengkap */}
+              <InputField
+                label="Nama Lengkap"
+                hint="Nama sesuai KTP"
+                value={identitas.namaLengkap}
+                onChange={(v) => setIdentitas({ ...identitas, namaLengkap: v.toUpperCase() })}
+                error={errors.namaLengkap}
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                }
+              />
+
               {/* Tanggal Lahir + JK */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -384,7 +402,7 @@ export default function InputPage() {
                 <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Alamat</label>
                 <textarea
                   value={identitas.alamat}
-                  onChange={(e) => setIdentitas({ ...identitas, alamat: e.target.value })}
+                  onChange={(e) => setIdentitas({ ...identitas, alamat: e.target.value.toUpperCase() })}
                   rows={2}
                   placeholder="Alamat lengkap"
                   className="w-full px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all resize-none"

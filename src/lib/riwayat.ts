@@ -4,6 +4,7 @@ import { hitungUsia, type JenisGulaDarah } from './klasifikasi';
 export interface RiwayatPemeriksaan {
   id: string;
   nik: string;
+  nama_lengkap: string | null;
   tanggal_lahir: string;
   jenis_kelamin: 'L' | 'P';
   no_telepon: string | null;

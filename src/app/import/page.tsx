@@ -76,14 +76,15 @@ export default function ImportPage() {
           const baris: BarisCSV = {
             Nomer: values[0],
             NIK: values[1],
-            TTL: values[2],
-            'L/P': values[3],
-            BB: values[4],
-            TB: values[5],
-            LP: values[6],
-            TD: values[7],
-            GDS: values[8],
-            CL: values[9],
+            Nama: values[2],
+            TTL: values[3],
+            'L/P': values[4],
+            BB: values[5],
+            TB: values[6],
+            LP: values[7],
+            TD: values[8],
+            GDS: values[9],
+            CL: values[10],
           };
 
           const parsed = parseBarisCSV(baris);
@@ -111,10 +112,10 @@ export default function ImportPage() {
   };
 
   const handleDownloadTemplate = () => {
-    const header = 'No,NIK,TTL,L/P,BB,TB,LP,TD,GDS,CL';
-    const example1 = '1,3309123456789012,15/03/1990,L,65,170,80,120/80,95,210';
-    const example2 = '2,3309123456789013,20/07/1985,P,55,158,72,130/85,110,';
-    const example3 = '3,3309123456789014,10/11/2008,L,48,160,65,110/70,88,';
+    const header = 'No,NIK,Nama,TTL,L/P,BB,TB,LP,TD,GDS,CL';
+    const example1 = '1,3309123456789012,PRAMUDYA CAKRA BUANA,15/03/1990,L,65,170,80,120/80,95,210';
+    const example2 = '2,3309123456789013,SITI AMINAH,20/07/1985,P,55,158,72,130/85,110,';
+    const example3 = '3,3309123456789014,BUDI SANTOSO,10/11/2008,L,48,160,65,110/70,88,';
     const csv = [header, example1, example2, example3].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -153,6 +154,7 @@ export default function ImportPage() {
 
           return {
             nik: d.nik,
+            nama_lengkap: d.nama_lengkap,
             tanggal_lahir: d.tanggal_lahir.toISOString().split('T')[0],
             jenis_kelamin: d.jenis_kelamin,
             berat_badan: d.berat_badan,
@@ -206,7 +208,7 @@ export default function ImportPage() {
 
         <div className="bg-white rounded-2xl p-5 border border-[var(--color-garis)]">
           <p className="text-[var(--color-tinta-lembut)] text-sm mb-4">
-            Upload file CSV dengan format: NIK, TTL, L/P, BB, TB, LP, TD, GDS, CL
+            Upload file CSV dengan format: No, NIK, Nama, TTL, L/P, BB, TB, LP, TD, GDS, CL
           </p>
           <div className="mb-4">
             <label className="block text-xs font-semibold text-[var(--color-tinta-lembut)] mb-1.5 ml-1">Tanggal Periksa</label>

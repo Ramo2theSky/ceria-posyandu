@@ -3,6 +3,7 @@ import { sanitasiJenisKelamin, formatTanggalDDMMYYYY } from './validasi';
 export interface BarisCSV {
   Nomer?: string;
   NIK?: string;
+  Nama?: string;
   TTL?: string;
   'L/P'?: string;
   BB?: string;
@@ -15,6 +16,7 @@ export interface BarisCSV {
 
 export interface DataParsed {
   nik: string;
+  nama_lengkap: string | null;
   tanggal_lahir: Date;
   jenis_kelamin: 'L' | 'P';
   berat_badan: number;
@@ -77,6 +79,7 @@ export function parseBarisCSV(baris: BarisCSV, tanggalPeriksa?: string): { data:
   return {
     data: {
       nik,
+      nama_lengkap: baris.Nama?.toUpperCase() || null,
       tanggal_lahir: tanggalLahir,
       jenis_kelamin: jenisKelamin,
       berat_badan: bb,

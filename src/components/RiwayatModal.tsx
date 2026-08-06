@@ -43,7 +43,7 @@ export default function RiwayatModal({ riwayat, onClose }: RiwayatModalProps) {
           <div>
             <h2 className="font-bold text-lg text-[var(--color-tinta)]">Riwayat Pemeriksaan</h2>
             <p className="text-xs text-[var(--color-tinta-lembut)]">
-              NIK {latest.nik} · {riwayat.length}x periksa
+              {latest.nama_lengkap ? `${latest.nama_lengkap} · ` : ''}NIK {latest.nik} · {riwayat.length}x periksa
             </p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-tinta-lembut)] hover:bg-[var(--color-garis)]">

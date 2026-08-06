@@ -13,6 +13,7 @@ import AppShell from '@/components/AppShell';
 interface Pemeriksaan {
   id: string;
   nik: string;
+  nama_lengkap: string | null;
   tanggal_lahir: string;
   jenis_kelamin: 'L' | 'P';
   no_telepon: string | null;
@@ -172,7 +173,7 @@ export default function DaftarPage() {
   const filtered = data.filter((d) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return d.nik.includes(q) || d.tanggal_periksa.includes(q);
+    return d.nik.includes(q) || d.nama_lengkap?.toLowerCase().includes(q) || d.tanggal_periksa.includes(q);
   });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -277,7 +278,7 @@ export default function DaftarPage() {
               setPage(1);
             }}
             className="flex-1 px-4 py-3 bg-white border border-[var(--color-garis)] rounded-xl text-sm text-[var(--color-tinta)] placeholder:text-[var(--color-tinta-lembut)]/50 focus:outline-none focus:border-[var(--color-hutan)] focus:ring-2 focus:ring-[var(--color-hutan)]/10 transition-all"
-            placeholder="Cari NIK atau tanggal..."
+            placeholder="Cari NIK, nama, atau tanggal..."
           />
         </div>
 
@@ -318,6 +319,9 @@ export default function DaftarPage() {
                 </th>
                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('nik')}>
                   NIK <SortIcon field="nik" sortField={sortField} sortDir={sortDir} />
+                </th>
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)]">
+                  Nama
                 </th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('usia')}>
                   Usia <SortIcon field="usia" sortField={sortField} sortDir={sortDir} />
@@ -374,6 +378,7 @@ export default function DaftarPage() {
                         />
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">{maskNIK(d.nik)}</td>
+                      <td className="px-3 py-2 text-xs font-semibold">{d.nama_lengkap || '-'}</td>
                       <td className="px-3 py-2 text-center">{usia}</td>
                       <td className="px-3 py-2 text-center">{d.jenis_kelamin}</td>
                       <td className="px-3 py-2 text-right">{d.berat_badan}</td>
@@ -431,11 +436,15 @@ export default function DaftarPage() {
 
                       return (
                         <tr className="bg-[var(--color-kertas-dalam)]/70 border-t border-[var(--color-garis)]">
-                          <td colSpan={10} className="px-3 py-4 text-sm space-y-4">
+                          <td colSpan={11} className="px-3 py-4 text-sm space-y-4">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                               <div>
                                 <p className="text-[var(--color-tinta-lembut)] text-xs uppercase tracking-wide">NIK Penuh</p>
                                 <p className="font-mono font-bold text-[var(--color-tinta)]">{d.nik}</p>
+                              </div>
+                              <div>
+                                <p className="text-[var(--color-tinta-lembut)] text-xs uppercase tracking-wide">Nama Lengkap</p>
+                                <p className="font-bold text-[var(--color-tinta)]">{d.nama_lengkap || '-'}</p>
                               </div>
                               <div>
                                 <p className="text-[var(--color-tinta-lembut)] text-xs uppercase tracking-wide">Tanggal Lahir</p>
