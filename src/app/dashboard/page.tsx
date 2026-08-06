@@ -197,6 +197,7 @@ export default function DashboardPage() {
 
     async function loadStats() {
       const admin = await isSuperAdmin();
+      const kaderPosyanduId = admin ? null : await getCurrentPosyanduId();
 
       const today = new Date();
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
@@ -206,9 +207,8 @@ export default function DashboardPage() {
         let query = supabase.from(table).select('id', { count: 'exact', head: true }).is('dihapus_pada', null);
         if (admin && selectedPosyanduId) {
           query = query.eq('posyandu_id', selectedPosyanduId);
-        } else if (!admin) {
-          const kaderPosyanduId = await getCurrentPosyanduId();
-          if (kaderPosyanduId) query = query.eq('posyandu_id', kaderPosyanduId);
+        } else if (!admin && kaderPosyanduId) {
+          query = query.eq('posyandu_id', kaderPosyanduId);
         }
         return query;
       };
