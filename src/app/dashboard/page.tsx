@@ -151,7 +151,7 @@ export default function DashboardPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
   const [selectedPosyanduId, setSelectedPosyanduId] = useState<string>('');
-  const [posyanduStats, setPosyanduStats] = useState<{ id: string; nama: string; count: number }[]>([]);
+  const [posyanduStats, setPosyanduStats] = useState<{ id: string; nama: string; count: number; sehat: number; pemantauan: number; rujukan: number }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -231,12 +231,20 @@ export default function DashboardPage() {
 
       if (admin && posyanduList.length > 0) {
         const statsPromises = posyanduList.map(async (p) => {
-          const { count } = await supabase
+          const { data } = await supabase
             .from('pemeriksaan')
-            .select('id', { count: 'exact', head: true })
+            .select('catatan')
             .is('dihapus_pada', null)
             .eq('posyandu_id', p.id);
-          return { id: p.id, nama: p.nama, count: count ?? 0 };
+          const rows = data ?? [];
+          return {
+            id: p.id,
+            nama: p.nama,
+            count: rows.length,
+            sehat: rows.filter((r) => r.catatan === 'SEHAT').length,
+            pemantauan: rows.filter((r) => r.catatan === 'PERLU PEMANTAUAN').length,
+            rujukan: rows.filter((r) => r.catatan === 'PERLU RUJUKAN').length,
+          };
         });
         const statsResults = await Promise.all(statsPromises);
         if (!cancelled) setPosyanduStats(statsResults);
@@ -378,17 +386,33 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {posyanduStats.map((p) => {
                   const maxCount = Math.max(...posyanduStats.map(s => s.count), 1);
-                  const percentage = (p.count / maxCount) * 100;
+                  const pctSehat = p.count > 0 ? (p.sehat / maxCount) * 100 : 0;
+                  const pctPemantauan = p.count > 0 ? (p.pemantauan / maxCount) * 100 : 0;
+                  const pctRujukan = p.count > 0 ? (p.rujukan / maxCount) * 100 : 0;
                   return (
                     <div key={p.id} className="flex items-center gap-4">
                       <div className="w-48 text-sm text-slate-700 truncate" title={p.nama}>
                         {p.nama.replace('Posyandu Dk. ', '')}
                       </div>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
+                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden flex">
+                        {pctSehat > 0 && (
+                          <div
+                            className="h-full transition-all duration-500"
+                            style={{ width: `${pctSehat}%`, backgroundColor: 'var(--color-hijau-ok)' }}
+                          />
+                        )}
+                        {pctPemantauan > 0 && (
+                          <div
+                            className="h-full transition-all duration-500"
+                            style={{ width: `${pctPemantauan}%`, backgroundColor: 'var(--color-kuning-warn)' }}
+                          />
+                        )}
+                        {pctRujukan > 0 && (
+                          <div
+                            className="h-full transition-all duration-500"
+                            style={{ width: `${pctRujukan}%`, backgroundColor: 'var(--color-merah-risiko)' }}
+                          />
+                        )}
                       </div>
                       <div className="w-12 text-right text-sm font-semibold text-slate-900">
                         {p.count}
@@ -396,6 +420,11 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="flex items-center gap-5 mt-4 text-xs text-slate-500">
+                <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-hijau-ok)' }} /> Sehat</span>
+                <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-kuning-warn)' }} /> Pemantauan</span>
+                <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-merah-risiko)' }} /> Rujukan</span>
               </div>
             </section>
           )}
