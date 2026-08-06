@@ -154,16 +154,10 @@ export default function DashboardPage() {
   const [posyanduStats, setPosyanduStats] = useState<{ id: string; nama: string; count: number }[]>([]);
 
   useEffect(() => {
-    // Force refresh on mount to ensure fresh data
-    router.refresh();
-  }, [router]);
-
-  useEffect(() => {
     let cancelled = false;
 
-    async function loadUserAndStats() {
+    async function initAuth() {
       const { data, error } = await supabase.auth.getUser();
-
       if (cancelled) return;
 
       if (error || !data.user) {
@@ -180,27 +174,42 @@ export default function DashboardPage() {
       const admin = await isSuperAdmin();
       if (!cancelled) setIsAdmin(admin);
 
-      let posyanduId = '';
       if (admin) {
         const list = await getPosyanduList();
-        if (!cancelled) setPosyanduList(list);
-        if (list.length > 0) {
-          posyanduId = selectedPosyanduId || list[0].id;
-          if (!cancelled) setSelectedPosyanduId(posyanduId);
+        if (!cancelled) {
+          setPosyanduList(list);
+          if (list.length > 0 && selectedPosyanduId === '') {
+            setSelectedPosyanduId(list[0].id);
+          }
         }
-      } else {
-        posyanduId = await getCurrentPosyanduId() || '';
       }
+    }
+
+    initAuth();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    let cancelled = false;
+
+    async function loadStats() {
+      const admin = await isSuperAdmin();
 
       const today = new Date();
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
       const todayStr = today.toISOString().split('T')[0];
 
-      // Base query with posyandu filter for non-admin
       const baseQuery = (table: string) => {
         let query = supabase.from(table).select('id', { count: 'exact', head: true }).is('dihapus_pada', null);
-        if (!admin && posyanduId) query = query.eq('posyandu_id', posyanduId);
-        if (admin && selectedPosyanduId) query = query.eq('posyandu_id', selectedPosyanduId);
+        if (admin && selectedPosyanduId) {
+          query = query.eq('posyandu_id', selectedPosyanduId);
+        } else if (!admin) {
+          const kaderPosyanduId = await getCurrentPosyanduId();
+          if (kaderPosyanduId) query = query.eq('posyandu_id', kaderPosyanduId);
+        }
         return query;
       };
 
@@ -220,10 +229,8 @@ export default function DashboardPage() {
         perluRujukan: rujukanResult.count ?? 0,
       });
 
-      // Load per-posyandu stats for admin
-      if (admin) {
-        const list = posyanduList.length > 0 ? posyanduList : await getPosyanduList();
-        const statsPromises = list.map(async (p) => {
+      if (admin && posyanduList.length > 0) {
+        const statsPromises = posyanduList.map(async (p) => {
           const { count } = await supabase
             .from('pemeriksaan')
             .select('id', { count: 'exact', head: true })
@@ -238,13 +245,10 @@ export default function DashboardPage() {
       setStatsLoading(false);
     }
 
-    loadUserAndStats();
+    loadStats();
 
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        // Reload stats on visibility change
-        loadUserAndStats();
-      }
+      if (document.visibilityState === 'visible') loadStats();
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
@@ -252,7 +256,7 @@ export default function DashboardPage() {
       cancelled = true;
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [router, selectedPosyanduId, posyanduList]);
+  }, [loading, selectedPosyanduId, posyanduList]);
 
   const menuItems: MenuItem[] = useMemo(() => [
     { href: '/input', title: 'Input Data Warga', description: 'Tambah pemeriksaan baru dengan cepat.', tone: 'teal' },
