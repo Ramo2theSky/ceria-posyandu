@@ -176,12 +176,7 @@ export default function DashboardPage() {
 
       if (admin) {
         const list = await getPosyanduList();
-        if (!cancelled) {
-          setPosyanduList(list);
-          if (list.length > 0 && selectedPosyanduId === '') {
-            setSelectedPosyanduId(list[0].id);
-          }
-        }
+        if (!cancelled) setPosyanduList(list);
       }
     }
 
