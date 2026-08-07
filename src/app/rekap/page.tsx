@@ -166,9 +166,9 @@ export default function RekapPage() {
   }, [filtered]);
 
   const handleExportCSV = () => {
-    const headers = ['NIK', 'Tanggal Lahir', 'Jenis Kelamin', 'No. Telepon', 'Alamat', 'BB', 'TB', 'LP', 'TD Sistol', 'TD Diastol', 'Gula Darah', 'Jenis GDP/GDS', 'Kolesterol', 'Tanggal Periksa', 'Status'];
+    const headers = ['NIK', 'Nama', 'Tanggal Lahir', 'Jenis Kelamin', 'No. Telepon', 'Alamat', 'BB', 'TB', 'LP', 'TD Sistol', 'TD Diastol', 'Gula Darah', 'Jenis GDP/GDS', 'Kolesterol', 'Tanggal Periksa', 'Status'];
     const rows = filtered.map(d => [
-      `'${d.nik}'`, d.tanggal_lahir, d.jenis_kelamin, d.no_telepon || '-', d.alamat || '-',
+      `'${d.nik}'`, d.nama_lengkap || '-', d.tanggal_lahir, d.jenis_kelamin, d.no_telepon || '-', d.alamat || '-',
       d.berat_badan, d.tinggi_badan, d.lingkar_pinggang, d.td_sistol, d.td_diastol,
       d.gds, d.jenis_gula_darah === 'puasa' ? 'GDP' : 'GDS', d.kolesterol_total || '-', d.tanggal_periksa, d.catatan || '-',
     ]);
