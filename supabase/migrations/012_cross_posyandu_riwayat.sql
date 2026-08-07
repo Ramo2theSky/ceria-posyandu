@@ -10,7 +10,7 @@ CREATE POLICY "kader_select" ON pemeriksaan
     dihapus_pada IS NULL
     AND EXISTS (
       SELECT 1 FROM posyandu
-      WHERE id = (auth.jwt() ->> 'posyandu_id')::uuid
+      WHERE id = (auth.jwt()->'user_metadata'->>'posyandu_id')::uuid
     )
   );
 
@@ -22,6 +22,6 @@ CREATE POLICY "kader_delete" ON pemeriksaan
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM posyandu
-      WHERE id = (auth.jwt() ->> 'posyandu_id')::uuid
+      WHERE id = (auth.jwt()->'user_metadata'->>'posyandu_id')::uuid
     )
   );
