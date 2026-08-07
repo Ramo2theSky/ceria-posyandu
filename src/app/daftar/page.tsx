@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
 import { maskNIK } from '@/lib/formatters';
 import { cekNIK, RiwayatPemeriksaan } from '@/lib/riwayat';
-import { isSuperAdmin, getPosyanduList, type Posyandu } from '@/lib/posyandu';
+import { isSuperAdmin, getCurrentPosyanduId, getPosyanduList, type Posyandu } from '@/lib/posyandu';
 import RiwayatModal from '@/components/RiwayatModal';
 import AppShell from '@/components/AppShell';
 
@@ -64,7 +64,7 @@ export default function DaftarPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [posyanduList, setPosyanduList] = useState<Posyandu[]>([]);
   const [filterPosyandu, setFilterPosyandu] = useState<string>('');
-
+  const [currentPosyanduId, setCurrentPosyanduId] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
 
@@ -72,6 +72,11 @@ export default function DaftarPage() {
       try {
         const admin = await isSuperAdmin();
         if (!cancelled) setIsAdmin(admin);
+
+        if (!admin) {
+          const posId = await getCurrentPosyanduId();
+          if (!cancelled) setCurrentPosyanduId(posId);
+        }
 
         let query = supabase
           .from('pemeriksaan')
@@ -127,7 +132,11 @@ export default function DaftarPage() {
     setRiwayatLoading(false);
   };
 
+  const canDelete = (d: Pemeriksaan) => isAdmin || d.posyandu_id === currentPosyanduId;
+
   const toggleSelect = (id: string) => {
+    const item = data.find((d) => d.id === id);
+    if (item && !canDelete(item)) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -137,18 +146,18 @@ export default function DaftarPage() {
   };
 
   const toggleSelectAll = () => {
-    const pagedIds = paged.map((d) => d.id);
-    const allSelected = pagedIds.every((id) => selectedIds.has(id));
+    const deletableIds = paged.filter((d) => canDelete(d)).map((d) => d.id);
+    const allSelected = deletableIds.length > 0 && deletableIds.every((id) => selectedIds.has(id));
     if (allSelected) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        pagedIds.forEach((id) => next.delete(id));
+        deletableIds.forEach((id) => next.delete(id));
         return next;
       });
     } else {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        pagedIds.forEach((id) => next.add(id));
+        deletableIds.forEach((id) => next.add(id));
         return next;
       });
     }
@@ -156,19 +165,23 @@ export default function DaftarPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Pindahkan ${selectedIds.size} data ke recycle bin?`)) return;
+    const deletableIds = Array.from(selectedIds).filter((id) => {
+      const item = data.find((d) => d.id === id);
+      return item && canDelete(item);
+    });
+    if (deletableIds.length === 0) return;
+    if (!confirm(`Pindahkan ${deletableIds.length} data ke recycle bin?`)) return;
 
     try {
-      const ids = Array.from(selectedIds);
-      const targets = data.filter((d) => selectedIds.has(d.id));
+      const targets = data.filter((d) => deletableIds.includes(d.id));
       const { error } = await supabase
         .from('pemeriksaan')
         .update({ dihapus_pada: new Date().toISOString() })
-        .in('id', ids);
+        .in('id', deletableIds);
 
       if (error) throw error;
       targets.forEach((t) => logActivity('delete', t.nik, `Data warga ${t.nik} dipindahkan ke recycle bin`));
-      setData(data.filter((d) => !selectedIds.has(d.id)));
+      setData(data.filter((d) => !deletableIds.includes(d.id)));
       setSelectedIds(new Set());
     } catch {
       alert('Gagal menghapus data');
@@ -340,7 +353,7 @@ export default function DaftarPage() {
                 <th className="px-3 py-2.5 text-center w-10">
                   <input
                     type="checkbox"
-                    checked={paged.length > 0 && paged.every((d) => selectedIds.has(d.id))}
+                    checked={paged.filter((d) => canDelete(d)).length > 0 && paged.filter((d) => canDelete(d)).every((d) => selectedIds.has(d.id))}
                     onChange={toggleSelectAll}
                     className="w-4 h-4 rounded accent-[var(--color-hutan)] cursor-pointer"
                   />
@@ -404,8 +417,9 @@ export default function DaftarPage() {
                         <input
                           type="checkbox"
                           checked={selectedIds.has(d.id)}
+                          disabled={!canDelete(d)}
                           onChange={() => toggleSelect(d.id)}
-                          className="w-4 h-4 rounded accent-[var(--color-hutan)] cursor-pointer"
+                          className={`w-4 h-4 rounded accent-[var(--color-hutan)] ${canDelete(d) ? 'cursor-pointer' : 'cursor-not-allowed opacity-30'}`}
                         />
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">{maskNIK(d.nik)}</td>
@@ -446,12 +460,14 @@ export default function DaftarPage() {
                           >
                             {isExpanded ? 'Tutup' : 'Detail'}
                           </button>
-                          <button
-                            onClick={() => handleDelete(d.id)}
-                            className="px-2 py-1 text-xs text-[var(--color-merah-risiko)] hover:bg-[var(--color-merah-risiko-bg)] rounded-lg transition-colors"
-                          >
-                            Hapus
-                          </button>
+                          {(isAdmin || d.posyandu_id === currentPosyanduId) && (
+                            <button
+                              onClick={() => handleDelete(d.id)}
+                              className="px-2 py-1 text-xs text-[var(--color-merah-risiko)] hover:bg-[var(--color-merah-risiko-bg)] rounded-lg transition-colors"
+                            >
+                              Hapus
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
