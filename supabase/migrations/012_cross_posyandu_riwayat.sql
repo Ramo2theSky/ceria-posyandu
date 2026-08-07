@@ -14,14 +14,6 @@ CREATE POLICY "kader_select" ON pemeriksaan
     )
   );
 
--- 2. Ubah policy kader_delete: kader bisa soft-delete data dari posyandu mana saja
---    (karena riwayat bisa dari posyandu lain, kader perlu bisa hapus data yang dilihat)
-DROP POLICY IF EXISTS "kader_delete" ON pemeriksaan;
+-- 2. Kader_delete: tetap hanya bisa hapus data posyandu sendiri
+--    (sudah benar dari migration 011, tidak perlu diubah)
 
-CREATE POLICY "kader_delete" ON pemeriksaan
-  FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM posyandu
-      WHERE id = (auth.jwt()->'user_metadata'->>'posyandu_id')::uuid
-    )
-  );

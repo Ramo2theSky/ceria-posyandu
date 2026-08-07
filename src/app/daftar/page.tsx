@@ -78,10 +78,8 @@ export default function DaftarPage() {
           .select('*')
           .is('dihapus_pada', null);
 
-        if (admin) {
-          const list = await getPosyanduList();
-          if (!cancelled) setPosyanduList(list);
-        }
+        const list = await getPosyanduList();
+        if (!cancelled) setPosyanduList(list);
 
         const { data: result, error } = await query.order('tanggal_periksa', { ascending: false });
 
@@ -353,11 +351,9 @@ export default function DaftarPage() {
                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)]">
                   Nama
                 </th>
-                {isAdmin && (
-                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)]">
-                    Posyandu
-                  </th>
-                )}
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-[var(--color-tinta-lembut)]">
+                  Posyandu
+                </th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-[var(--color-tinta-lembut)] cursor-pointer" onClick={() => handleSort('usia')}>
                   Usia <SortIcon field="usia" sortField={sortField} sortDir={sortDir} />
                 </th>
@@ -414,11 +410,9 @@ export default function DaftarPage() {
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">{maskNIK(d.nik)}</td>
                       <td className="px-3 py-2 text-xs font-semibold">{d.nama_lengkap || '-'}</td>
-                      {isAdmin && (
-                        <td className="px-3 py-2 text-xs text-[var(--color-tinta-lembut)]">
-                          {posyanduList.find(p => p.id === d.posyandu_id)?.nama || '-'}
-                        </td>
-                      )}
+                      <td className="px-3 py-2 text-xs text-[var(--color-tinta-lembut)]">
+                        {posyanduList.find(p => p.id === d.posyandu_id)?.nama || '-'}
+                      </td>
                       <td className="px-3 py-2 text-center">{usia}</td>
                       <td className="px-3 py-2 text-center">{d.jenis_kelamin}</td>
                       <td className="px-3 py-2 text-right">{d.berat_badan}</td>
@@ -476,7 +470,7 @@ export default function DaftarPage() {
 
                       return (
                         <tr className="bg-[var(--color-kertas-dalam)]/70 border-t border-[var(--color-garis)]">
-                          <td colSpan={isAdmin ? 12 : 11} className="px-3 py-4 text-sm space-y-4">
+                          <td colSpan={12} className="px-3 py-4 text-sm space-y-4">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                               <div>
                                 <p className="text-[var(--color-tinta-lembut)] text-xs uppercase tracking-wide">NIK Penuh</p>
